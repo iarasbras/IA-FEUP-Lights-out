@@ -1,0 +1,6 @@
+*
+!.gitignore
+!lights-outnai/
+!lights-outnai/**
+
+.DS_Store
