@@ -1,0 +1,11 @@
+export const gridEl = document.getElementById("grid");
+export const statusEl = document.getElementById("status");
+export const levelTitle = document.getElementById("levelTitle");
+export const levelDesc = document.getElementById("levelDesc");
+export const movesStat = document.getElementById("movesStat");
+export const onStat = document.getElementById("onStat");
+export const winsStat = document.getElementById("winsStat");
+export const bestStat = document.getElementById("bestStat");
+export const toast = document.getElementById("toast");
+export const restartBtn = document.getElementById("restartBtn");
+export const newBtn = document.getElementById("newBtn");

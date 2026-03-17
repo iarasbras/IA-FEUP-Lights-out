@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Lights Out — Play Mode</title>
+  <link rel="stylesheet" href="./assets/styles/main.css" />
+</head>
+<body>
+  <div class="app">
+    <div class="card">
+      <div class="header">
+        <div>
+          <div class="title">
+            <h1>Lights Out <span class="badge">Play Mode</span></h1>
+            <p class="subtitle">
+              Click a cell to toggle it and its orthogonal neighbors. Turn everything OFF.
+              Each time you win, the next level gets harder automatically.
+            </p>
+          </div>
+        </div>
+        <div class="badge" id="status">Level 1</div>
+      </div>
+
+      <div class="gridWrap">
+        <div class="grid" id="grid" style="--n:3"></div>
+      </div>
+
+      <div class="footerNote">
+        <span class="pill">Levels are always solvable (scrambled from solved)</span>
+        <span class="pill">No AI. Just play.</span>
+      </div>
+    </div>
+
+    <div class="card panel">
+      <h2>Progress</h2>
+      <div class="big" id="levelTitle">Level 1</div>
+      <div class="muted" id="levelDesc">
+        Board: 3×3 • Scramble: 6 moves
+      </div>
+
+      <div class="stats">
+        <div class="stat">
+          <div class="k">Moves (you)</div>
+          <div class="v" id="movesStat">0</div>
+        </div>
+        <div class="stat">
+          <div class="k">Lights ON</div>
+          <div class="v" id="onStat">0</div>
+        </div>
+        <div class="stat">
+          <div class="k">Best Streak</div>
+          <div class="v" id="bestStat">0</div>
+        </div>
+        <div class="stat">
+          <div class="k">Wins</div>
+          <div class="v" id="winsStat">0</div>
+        </div>
+      </div>
+
+      <div class="buttons">
+        <button class="btn primary" id="restartBtn">Restart Level</button>
+        <button class="btn danger" id="newBtn">New Puzzle</button>
+      </div>
+
+      <div class="toast" id="toast">
+        Beat a level to increase difficulty automatically.
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>
