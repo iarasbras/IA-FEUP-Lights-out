@@ -33,7 +33,33 @@ function handlePress(i) {
   }
 }
 
+function startGame(size) {
+  game.startFromSize(size);
+  clearSolvedStatus();
+
+  setToast(`Board selected: ${size}x${size}. Turn everything OFF.`);
+  update();
+}
+
+function goBackToMenu() {
+  window.location.href = "./homepage.html";
+}
+
+function getStartSize() {
+  const params = new URLSearchParams(window.location.search);
+  const raw = Number(params.get("size"));
+
+  if ([3, 4, 5].includes(raw)) {
+    return raw;
+  }
+
+  return 3;
+}
+
 bindControls({
+  onBackToMenu: () => {
+    goBackToMenu();
+  },
   onRestart: () => {
     game.restartLevel();
     setToast(`Restarted Level ${game.level + 1}.`);
@@ -46,6 +72,4 @@ bindControls({
   },
 });
 
-game.loadLevel(0);
-setToast(`Beat a level to increase difficulty automatically.`);
-update();
+startGame(getStartSize());

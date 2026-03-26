@@ -33,8 +33,136 @@ body{
   grid-template-columns: 1.15fr .85fr;
   gap:18px;
 }
+
+.backFloating{
+  position:fixed;
+  top:18px;
+  left:18px;
+  z-index:20;
+  width:auto;
+  padding:10px 14px;
+}
+.hidden{display:none !important;}
+
+.menuScreen{
+  width:min(760px, 100%);
+}
+
+.menuHero{
+  text-align:center;
+  margin-bottom:18px;
+}
+
+.menuHero h1{
+  margin:0;
+  font-size:clamp(44px, 10vw, 78px);
+  line-height:.95;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  font-weight:900;
+  color:#f4f7ff;
+  text-shadow:
+    0 0 26px rgba(124,92,255,.42),
+    0 12px 30px rgba(0,0,0,.35);
+}
+
+.menuCard{
+  display:flex;
+  flex-direction:column;
+}
+
+.menuHeader{
+  justify-content:center;
+}
+
+.menuTitle{
+  width:100%;
+  text-align:center;
+}
+
+.menuBadge{
+  margin:0 auto;
+  font-size:14px;
+  padding:7px 14px;
+  letter-spacing:.05em;
+}
+
+.menuSubtitle{
+  margin:12px 0 0;
+  width:100%;
+  font-size:16px;
+  text-align:left;
+}
+
+.menuChoices{
+  display:grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap:12px;
+  padding:22px 18px;
+}
+
+.sizeChoice{
+  min-height:56px;
+  font-size:16px;
+}
+
+.howToCard{
+  margin-top:14px;
+}
+
+.howToToggle{
+  width:100%;
+  text-align:left;
+  border:none;
+  border-bottom:1px solid rgba(34,48,74,.7);
+  background:linear-gradient(180deg, rgba(15,22,36,.75), rgba(15,22,36,.25));
+  color:var(--text);
+  padding:16px 18px;
+  font-size:16px;
+  font-weight:800;
+  letter-spacing:.03em;
+  cursor:pointer;
+}
+
+.howToToggle::after{
+  content:"Show rules";
+  float:right;
+  font-size:12px;
+  color:var(--muted);
+  font-weight:600;
+}
+
+.howToToggle[aria-expanded="true"]::after{
+  content:"Hide rules";
+}
+
+.howToContent{
+  padding:16px 18px;
+  color:var(--muted);
+  font-size:14px;
+  line-height:1.5;
+}
+
+.howToContent h3{
+  color:var(--text);
+  margin:14px 0 6px;
+  font-size:15px;
+}
+
+.howToContent p{
+  margin:0 0 10px;
+}
+
 @media (max-width: 900px){
   .app{grid-template-columns:1fr}
+  .menuChoices{grid-template-columns:1fr}
+  .menuHero h1{font-size:clamp(36px, 14vw, 56px)}
+  .backFloating{
+    top:12px;
+    left:12px;
+    padding:9px 12px;
+    font-size:13px;
+  }
 }
 .card{
   background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015));
@@ -82,6 +210,12 @@ body{
   background: rgba(43,213,118,.10);
   color: var(--ok);
   font-weight:700;
+}
+
+.menuTitle .menuBadge{
+  font-size:14px;
+  padding:7px 14px;
+  letter-spacing:.06em;
 }
 
 .gridWrap{
@@ -167,7 +301,7 @@ body{
 
 .buttons{
   display:grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap:10px;
   margin-top:14px;
 }

@@ -9,7 +9,8 @@ import {
 
 export class LightsOutGame {
   constructor() {
-    this.levels = levels;
+    this.allLevels = levels;
+    this.levels = this.allLevels;
 
     this.level = 0;
     this.wins = 0;
@@ -22,6 +23,16 @@ export class LightsOutGame {
     this.board = 0;
     this.moves = 0;
     this.lastPuzzleBoard = 0;
+  }
+
+  startFromSize(size) {
+    const idx = this.allLevels.findIndex((lvl) => lvl.n === size);
+    this.levels = idx === -1 ? this.allLevels : this.allLevels.slice(idx);
+
+    this.wins = 0;
+    this.best = 0;
+
+    this.loadLevel(0);
   }
 
   loadLevel(k) {

@@ -7,5 +7,6 @@ export const onStat = document.getElementById("onStat");
 export const winsStat = document.getElementById("winsStat");
 export const bestStat = document.getElementById("bestStat");
 export const toast = document.getElementById("toast");
+export const backBtn = document.getElementById("backBtn");
 export const restartBtn = document.getElementById("restartBtn");
 export const newBtn = document.getElementById("newBtn");
