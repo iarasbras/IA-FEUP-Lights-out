@@ -307,6 +307,14 @@ body{
     inset 0 0 0 1px rgba(255,255,255,.06);
 }
 
+.cell.hint{
+  border-color: rgba(255,214,102,.88);
+  box-shadow:
+    0 0 0 1px rgba(255,214,102,.55),
+    0 0 20px rgba(255,214,102,.32),
+    inset 0 0 0 1px rgba(255,255,255,.10);
+}
+
 .panel{ padding:16px; }
 .panel h2{
   margin:0 0 10px;
@@ -440,6 +448,10 @@ body{
 .btn.primary{
   border-color: rgba(124,92,255,.75);
   background: linear-gradient(180deg, rgba(124,92,255,.28), rgba(124,92,255,.14));
+}
+.btn.hint{
+  border-color: rgba(255,214,102,.72);
+  background: linear-gradient(180deg, rgba(255,214,102,.24), rgba(255,214,102,.12));
 }
 .btn.danger{
   border-color: rgba(255,120,145,.78);

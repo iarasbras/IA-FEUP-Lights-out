@@ -1,6 +1,7 @@
 import {
   backBtn,
   restartBtn,
+  hintBtn,
   newBtn,
   solveBfsBtn,
   aiPrevBtn,
@@ -10,6 +11,7 @@ import {
 export function bindControls({
   onBackToMenu,
   onRestart,
+  onHint,
   onNewPuzzle,
   onSolveBFS,
   onAIPrevMove,
@@ -20,6 +22,9 @@ export function bindControls({
   }
 
   restartBtn.addEventListener("click", onRestart);
+  if (onHint) {
+    hintBtn.addEventListener("click", onHint);
+  }
   newBtn.addEventListener("click", onNewPuzzle);
 
   if (onSolveBFS) {

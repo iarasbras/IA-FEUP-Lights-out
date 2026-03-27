@@ -16,6 +16,8 @@ import { AISolverTracker } from "./ai/tracker.js";
 const game = new LightsOutGame();
 const aiTracker = new AISolverTracker();
 let aiBusy = false;
+let hintCell = null;
+let hintsUsedInLevel = 0;
 const AI_REPLAY_DELAY_MS = 320;
 const aiReview = {
   active: false,
@@ -24,7 +26,7 @@ const aiReview = {
 };
 
 function update() {
-  render(game, handlePress);
+  render(game, handlePress, hintCell, hintsUsedInLevel);
   renderAIResult(aiTracker.latest());
   renderAIReviewState(aiReview);
 }
@@ -38,6 +40,8 @@ function handlePress(i) {
     resetAIReview();
   }
 
+  hintCell = null;
+
   game.press(i);
   update();
 
@@ -48,6 +52,8 @@ function handlePress(i) {
     setTimeout(() => {
       clearSolvedStatus();
       game.advanceLevel();
+      hintsUsedInLevel = 0;
+      hintCell = null;
 
       if (game.level < game.levels.length) {
         setToast(`Beat a level to increase difficulty automatically.`);
@@ -66,6 +72,8 @@ function startGame(size) {
   game.startFromSize(size);
   aiTracker.clear();
   resetAIReview();
+  hintCell = null;
+  hintsUsedInLevel = 0;
   clearSolvedStatus();
   setAIResultsVisible(false);
   setBFSSolvedState(false);
@@ -81,6 +89,7 @@ async function runBFS() {
 
   aiBusy = true;
   resetAIReview();
+  hintCell = null;
   setAIResultsVisible(true);
 
   setToast("Running BFS... this can take longer on larger boards.");
@@ -139,6 +148,43 @@ function replayAIMoves(moves) {
 
 function pause() {
   return new Promise((resolve) => setTimeout(resolve, 0));
+}
+
+async function askHint() {
+  if (aiBusy) {
+    return;
+  }
+
+  if (game.isSolved()) {
+    hintCell = null;
+    setToast("Board is already solved.");
+    update();
+    return;
+  }
+
+  setToast("Computing hint...");
+  await pause();
+
+  const run = solveWithBFS({
+    board: game.board,
+    toggleMasks: game.toggleMasks,
+    maskAll: game.maskAll,
+  });
+
+  if (!run.solved || run.moves.length === 0) {
+    hintCell = null;
+    setToast(`No hint available (${run.reason}). Try another puzzle.`);
+    update();
+    return;
+  }
+
+  hintCell = run.moves[0];
+  hintsUsedInLevel += 1;
+
+  const row = Math.floor(hintCell / game.n) + 1;
+  const col = (hintCell % game.n) + 1;
+  setToast(`Hint: try row ${row}, column ${col}.`);
+  update();
 }
 
 function stepAIPrevious() {
@@ -207,10 +253,13 @@ bindControls({
     game.restartLevel();
     aiTracker.clear();
     resetAIReview();
+    hintCell = null;
+    hintsUsedInLevel = 0;
     setBFSSolvedState(false);
     setToast(`Restarted Level ${game.level + 1}.`);
     update();
   },
+  onHint: askHint,
   onNewPuzzle: () => {
     if (aiBusy) {
       return;
@@ -219,6 +268,8 @@ bindControls({
     game.newPuzzle();
     aiTracker.clear();
     resetAIReview();
+    hintCell = null;
+    hintsUsedInLevel = 0;
     setBFSSolvedState(false);
     setToast(`New solvable puzzle generated for Level ${game.level + 1}.`);
     update();

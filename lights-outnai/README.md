@@ -38,6 +38,7 @@ The current focus is to support both **human play** and **AI-based solving analy
 
 - Start menu with selectable board sizes (3x3, 4x4, 5x5)
 - Human playable Lights Out mode in the browser
+- Human hint mode via `Ask Hint` button (suggests next move)
 - Progressive levels with increasing difficulty
 - Solvable puzzle generation
 - Difficulty smoothing with level constraints

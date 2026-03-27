@@ -7,6 +7,7 @@ import {
   onStat,
   winsStat,
   bestStat,
+  hintsStat,
   toast,
   aiResultPanel,
   solveBfsBtn,
@@ -26,7 +27,7 @@ export function setToast(html) {
   toast.innerHTML = html;
 }
 
-export function render(game, onPress) {
+export function render(game, onPress, hintCellIndex = null, hintsUsed = 0) {
   const levelConfig = game.getLevelConfig();
 
   gridEl.style.setProperty("--n", game.n);
@@ -38,12 +39,16 @@ export function render(game, onPress) {
   onStat.textContent = game.getLightsOn();
   winsStat.textContent = game.wins;
   bestStat.textContent = game.best;
+  hintsStat.textContent = hintsUsed;
 
   gridEl.innerHTML = "";
 
   for (let i = 0; i < game.n * game.n; i++) {
     const b = document.createElement("button");
-    b.className = "cell" + (((game.board >>> i) & 1) ? " on" : "");
+    const isOn = ((game.board >>> i) & 1) === 1;
+    const isHint = i === hintCellIndex;
+
+    b.className = "cell" + (isOn ? " on" : "") + (isHint ? " hint" : "");
     b.setAttribute("aria-label", `cell ${i}`);
     b.addEventListener("click", () => onPress(i));
     gridEl.appendChild(b);
