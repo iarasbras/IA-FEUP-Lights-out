@@ -37,24 +37,24 @@ export class LightsOutGame {
 
   loadLevel(k) {
     this.level = Math.max(0, Math.min(k, this.levels.length - 1));
-    this.n = this.levels[this.level].n;
+    const config = this.levels[this.level];
+
+    this.n = config.n;
     this.maskAll = computeMaskAll(this.n);
     this.toggleMasks = computeToggleMasks(this.n);
 
-    this.board = makeSolvablePuzzle(
-      this.n,
-      this.levels[this.level].scramble,
-      this.toggleMasks,
-      this.maskAll
-    );
+    this.board = this.makePuzzleForConfig(config);
 
     this.moves = 0;
     this.lastPuzzleBoard = this.board;
   }
 
-  press(i) {
+  press(i, countMove = true) {
     this.board = applyMask(this.board, this.toggleMasks[i], this.maskAll);
-    this.moves += 1;
+
+    if (countMove) {
+      this.moves += 1;
+    }
   }
 
   restartLevel() {
@@ -63,12 +63,8 @@ export class LightsOutGame {
   }
 
   newPuzzle() {
-    this.board = makeSolvablePuzzle(
-      this.n,
-      this.levels[this.level].scramble,
-      this.toggleMasks,
-      this.maskAll
-    );
+    const config = this.getLevelConfig();
+    this.board = this.makePuzzleForConfig(config);
 
     this.moves = 0;
     this.lastPuzzleBoard = this.board;
@@ -113,5 +109,37 @@ export class LightsOutGame {
       return this.levels[this.level];
     }
     return { n: this.n, scramble: 24 };
+  }
+
+  makePuzzleForConfig(config) {
+    const attempts = 140;
+    const minOn = config.minOn ?? 1;
+    const maxOn = config.maxOn ?? null;
+
+    let fallback = 0;
+
+    for (let i = 0; i < attempts; i++) {
+      const candidate = makeSolvablePuzzle(
+        this.n,
+        config.scramble,
+        this.toggleMasks,
+        this.maskAll
+      );
+      const lightsOn = popcount(candidate);
+
+      fallback = candidate;
+
+      if (lightsOn < minOn) {
+        continue;
+      }
+
+      if (maxOn !== null && lightsOn > maxOn) {
+        continue;
+      }
+
+      return candidate;
+    }
+
+    return fallback;
   }
 }

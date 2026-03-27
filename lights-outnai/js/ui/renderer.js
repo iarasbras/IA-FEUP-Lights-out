@@ -8,6 +8,18 @@ import {
   winsStat,
   bestStat,
   toast,
+  aiResultPanel,
+  solveBfsBtn,
+  aiPrevBtn,
+  aiNextBtn,
+  aiStepMeta,
+  aiStatus,
+  aiMethodStat,
+  aiMovesStat,
+  aiTimeStat,
+  aiVisitedStat,
+  aiExpandedStat,
+  aiQueueStat,
 } from "./dom.js";
 
 export function setToast(html) {
@@ -44,4 +56,63 @@ export function setSolvedStatus() {
 
 export function clearSolvedStatus() {
   statusEl.classList.remove("good");
+}
+
+export function setAIResultsVisible(visible) {
+  if (visible) {
+    aiResultPanel.classList.remove("hidden");
+    return;
+  }
+
+  aiResultPanel.classList.add("hidden");
+}
+
+export function setBFSSolvedState(solved) {
+  if (solved) {
+    solveBfsBtn.textContent = "Solved with BFS";
+    solveBfsBtn.disabled = true;
+    return;
+  }
+
+  solveBfsBtn.textContent = "Solve With BFS";
+  solveBfsBtn.disabled = false;
+}
+
+export function renderAIReviewState(review) {
+  if (!review || !review.active) {
+    aiPrevBtn.disabled = true;
+    aiNextBtn.disabled = true;
+    aiStepMeta.textContent = "Step - / -";
+    return;
+  }
+
+  aiPrevBtn.disabled = review.cursor <= 0;
+  aiNextBtn.disabled = review.cursor >= review.moves.length;
+  aiStepMeta.textContent = `Step ${review.cursor} / ${review.moves.length}`;
+}
+
+export function renderAIResult(run) {
+  if (!run) {
+    aiStatus.textContent = "";
+    aiMethodStat.textContent = "-";
+    aiMovesStat.textContent = "-";
+    aiTimeStat.textContent = "-";
+    aiVisitedStat.textContent = "-";
+    aiExpandedStat.textContent = "-";
+    aiQueueStat.textContent = "-";
+    return;
+  }
+
+  if (run.solved) {
+    aiStatus.innerHTML = `<span class="aiSolvedHighlight">Solved in ${run.depth} moves</span>`;
+  } else {
+    aiStatus.textContent = "";
+  }
+
+  aiMethodStat.textContent = run.method;
+  aiMovesStat.textContent = String(run.depth);
+  aiTimeStat.textContent = String(run.timeMs);
+  aiVisitedStat.textContent = String(run.visitedStates);
+  aiExpandedStat.textContent = String(run.expandedStates);
+  aiQueueStat.textContent = String(run.maxQueueSize);
 }

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Lights Out — Play Mode</title>
+  <title>Lights Out - Play Mode</title>
   <link rel="stylesheet" href="./assets/styles/main.css" />
 </head>
 <body>
@@ -16,7 +16,7 @@
           <div class="title">
             <h1>Lights Out <span class="badge">Play Mode</span></h1>
             <p class="subtitle">
-              Click a cell to toggle it and its orthogonal neighbors. Turn everything OFF.
+              Click a cell to toggle it and its orthogonal neighbors. Turn everything OFF.<br>
               Each time you win, the next level gets harder automatically.
             </p>
           </div>
@@ -30,7 +30,7 @@
 
       <div class="footerNote">
         <span class="pill">Levels are always solvable (scrambled from solved)</span>
-        <span class="pill">No AI. Just play.</span>
+        <span class="pill">Play yourself or run AI solvers</span>
       </div>
     </div>
 
@@ -63,6 +63,48 @@
       <div class="buttons">
         <button class="btn primary" id="restartBtn">Restart Level</button>
         <button class="btn danger" id="newBtn">New Puzzle</button>
+      </div>
+
+      <div class="aiSection">
+        <h3>AI Solver</h3>
+        <div class="aiActionRow">
+          <button class="btn ai" id="solveBfsBtn">Solve With BFS</button>
+          <div class="muted" id="aiStatus"></div>
+        </div>
+        <div id="aiResultPanel" class="hidden">
+          <div class="aiStepControls">
+            <div class="muted aiStepMeta" id="aiStepMeta">Step - / -</div>
+            <button class="btn" id="aiPrevBtn" disabled>Previous AI Move</button>
+            <button class="btn" id="aiNextBtn" disabled>Next AI Move</button>
+          </div>
+
+          <div class="stats aiStats">
+            <div class="stat">
+              <div class="k">Method</div>
+              <div class="v" id="aiMethodStat">-</div>
+            </div>
+            <div class="stat">
+              <div class="k">AI Moves</div>
+              <div class="v" id="aiMovesStat">-</div>
+            </div>
+            <div class="stat">
+              <div class="k">Time (ms)</div>
+              <div class="v" id="aiTimeStat">-</div>
+            </div>
+            <div class="stat">
+              <div class="k">Visited</div>
+              <div class="v" id="aiVisitedStat">-</div>
+            </div>
+            <div class="stat">
+              <div class="k">Expanded</div>
+              <div class="v" id="aiExpandedStat">-</div>
+            </div>
+            <div class="stat">
+              <div class="k">Max Queue</div>
+              <div class="v" id="aiQueueStat">-</div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div class="toast" id="toast">
