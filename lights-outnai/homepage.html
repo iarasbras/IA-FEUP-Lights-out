@@ -6,7 +6,9 @@
   <title>Lights Out - Start Menu</title>
   <link rel="stylesheet" href="./assets/styles/main.css" />
 </head>
-<body>
+<body class="menuHome">
+  <canvas class="menuBackdrop" id="menuBackdrop" aria-hidden="true"></canvas>
+
   <div class="menuScreen" id="menuScreen">
     <div class="menuHero">
       <h1>Lights Out</h1>
@@ -35,22 +37,45 @@
       </button>
 
       <div class="howToContent" id="howToContent" hidden>
-        <p>The goal of the game is simple: Turn off all the lights on the grid.</p>
+        
+        <div class="howToSteps">
+          <div class="howToStep">
+            <div class="howToStepNum">1</div>
+            <div>
+              <h3>Pick a board</h3>
+              <p>Start with 3×3 if you want something quick, then move up to 4×4 or 5×5 for a harder puzzle.</p>
+            </div>
+          </div>
 
-        <h3>The Rules</h3>
-        <p><strong>Make a move:</strong> When you click a light, it will switch its state. If it was On, it turns Off. If it was Off, it turns On.</p>
-        <p><strong>The Cross Pattern:</strong> Clicking a light does not just affect that square. It also toggles the four adjacent lights (North, South, East, and West) in a "+" shape.</p>
-        <p><strong>The Goal:</strong> Strategically click the lights until every single square on the board is dark.</p>
+          <div class="howToStep">
+            <div class="howToStepNum">2</div>
+            <div>
+              <h3>Click lights</h3>
+              <p>Press a cell to toggle it plus the four adjacent cells in a cross pattern.</p>
+              <p>The board is solved when every square is dark, so you can use the pattern to work out the moves step by step.</p>
+            </div>
+          </div>
 
-        <h3>Quick Tips</h3>
-        <p><strong>Order does not matter:</strong> Clicking Square A then Square B has the same result as clicking Square B then Square A.</p>
-        <p><strong>Double-clicking is useless:</strong> Clicking the same light twice returns the board to its exact previous state. Every light should be clicked either once or not at all.</p>
+          <div class="howToStep">
+            <div class="howToStepNum">3</div>
+            <div>
+              <h3>Finish the grid</h3>
+              <p>Keep going until all lights are off. If you get stuck, use <strong>Ask Hint</strong> or try an AI solver.</p>
+            </div>
+          </div>
+        </div>
 
-        <h3>Strategy: "Chasing the Lights"</h3>
-        <p>If you are stuck, try this common technique:</p>
-        <p>Start at the top row.</p>
-        <p>Move to the second row and click the lights that are directly below the "On" lights in the row above.</p>
-        <p>Repeat this row-by-row until you reach the bottom!</p>
+        <div class="howToTips">
+          <div class="howToTip">
+            <strong>Tip:</strong> Order does not matter, so you can experiment freely.
+          </div>
+          <div class="howToTip">
+            <strong>Tip:</strong> Clicking the same cell twice cancels itself out.
+          </div>
+          <div class="howToTip">
+            <strong>Tip:</strong> If you get stuck, try solving row by row from the top, then use the AI solver or a hint.
+          </div>
+        </div>
       </div>
     </div>
   </div>

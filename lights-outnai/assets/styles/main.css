@@ -16,9 +16,10 @@ body{
   margin:0;
   font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
   background:
-    radial-gradient(1200px 700px at 10% 0%, rgba(124,92,255,.25), transparent 55%),
-    radial-gradient(900px 600px at 100% 10%, rgba(45,226,230,.16), transparent 55%),
-    radial-gradient(900px 700px at 60% 100%, rgba(255,77,109,.10), transparent 50%),
+    radial-gradient(1100px 680px at 8% 0%, rgba(67,51,130,.90), transparent 52%),
+    radial-gradient(900px 560px at 100% 6%, rgba(24,104,116,.72), transparent 52%),
+    radial-gradient(900px 700px at 58% 100%, rgba(74,32,55,.58), transparent 56%),
+    radial-gradient(700px 420px at 50% 50%, rgba(10,13,24,.05), transparent 62%),
     var(--bg);
   color:var(--text);
   min-height:100vh;
@@ -27,6 +28,33 @@ body{
   justify-content:center;
   padding:24px;
 }
+
+body.menuHome{
+  overflow-x:hidden;
+  overflow-y:auto;
+  background:
+    radial-gradient(1100px 680px at 8% 0%, rgba(67,51,130,.90), transparent 52%),
+    radial-gradient(900px 560px at 100% 6%, rgba(24,104,116,.72), transparent 52%),
+    radial-gradient(900px 700px at 58% 100%, rgba(74,32,55,.58), transparent 56%),
+    radial-gradient(700px 420px at 50% 50%, rgba(10,13,24,.05), transparent 62%),
+    var(--bg);
+}
+
+body.menuHome .menuBackdrop{
+  position:fixed;
+  inset:0;
+  width:100%;
+  height:100%;
+  z-index:0;
+  pointer-events:none;
+  opacity:.55;
+}
+
+body.menuHome .menuScreen{
+  position:relative;
+  z-index:1;
+}
+
 .app{
   width:min(980px, 100%);
   display:grid;
@@ -69,6 +97,11 @@ body{
 .menuCard{
   display:flex;
   flex-direction:column;
+  border-color: rgba(45,226,230,.20);
+  box-shadow:
+    0 0 0 1px rgba(45,226,230,.08),
+    0 18px 60px rgba(0,0,0,.42),
+    0 0 35px rgba(124,92,255,.12);
 }
 
 .menuHeader{
@@ -107,6 +140,18 @@ body{
   position:relative;
   overflow:hidden;
   isolation:isolate;
+  letter-spacing:0;
+  text-transform:none;
+  display:block;
+  padding:0 16px;
+  border:1px solid rgba(45,226,230,.42);
+  background:
+    linear-gradient(180deg, rgba(124,92,255,.18), rgba(15,22,36,.82));
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.04),
+    inset 0 -14px 24px rgba(45,226,230,.10),
+    0 0 0 1px rgba(124,92,255,.12),
+    0 14px 30px rgba(0,0,0,.28);
 }
 
 .sizeChoice::before{
@@ -115,8 +160,9 @@ body{
   inset:0;
   border-radius:inherit;
   background:
-    radial-gradient(150px 95px at 50% 88%, rgba(255,255,255,.44), transparent 58%),
-    radial-gradient(140px 100px at 50% 100%, rgba(45,226,230,.24), transparent 64%);
+    radial-gradient(140px 90px at 50% 90%, rgba(255,255,255,.30), transparent 58%),
+    radial-gradient(170px 120px at 50% 100%, rgba(45,226,230,.24), transparent 65%),
+    linear-gradient(180deg, rgba(255,255,255,.06), transparent 55%);
   opacity:0;
   transition: opacity .22s ease;
   pointer-events:none;
@@ -132,12 +178,12 @@ body{
 .sizeChoice:focus-visible{
   border-color: rgba(45,226,230,.86);
   background:
-    linear-gradient(180deg, rgba(124,92,255,.30), rgba(45,226,230,.34));
+    linear-gradient(180deg, rgba(124,92,255,.32), rgba(45,226,230,.22));
   box-shadow:
-    inset 0 0 18px rgba(255,255,255,.14),
-    inset 0 -14px 26px rgba(45,226,230,.28),
+    inset 0 0 18px rgba(255,255,255,.12),
+    inset 0 -16px 28px rgba(45,226,230,.24),
     0 0 0 1px rgba(45,226,230,.38),
-    0 0 28px rgba(45,226,230,.36),
+    0 0 30px rgba(45,226,230,.34),
     0 10px 26px rgba(0,0,0,.28);
 }
 
@@ -146,8 +192,25 @@ body{
   opacity:1;
 }
 
+.sizeChoice:active{
+  transform:translateY(1px);
+}
+
+.sizeChoice:focus-visible{
+  outline:none;
+  box-shadow:
+    inset 0 0 18px rgba(255,255,255,.12),
+    inset 0 -16px 28px rgba(45,226,230,.24),
+    0 0 0 1px rgba(45,226,230,.38),
+    0 0 30px rgba(45,226,230,.34),
+    0 0 0 3px rgba(45,226,230,.12),
+    0 10px 26px rgba(0,0,0,.28);
+}
+
 .howToCard{
   margin-top:14px;
+  border-color: rgba(45,226,230,.14);
+  box-shadow: 0 14px 45px rgba(0,0,0,.28);
 }
 
 .howToToggle{
@@ -177,20 +240,75 @@ body{
 }
 
 .howToContent{
-  padding:16px 18px;
+  padding:18px;
   color:var(--muted);
   font-size:14px;
   line-height:1.5;
 }
 
-.howToContent h3{
+.howToLead{
+  margin:0 0 14px;
   color:var(--text);
-  margin:14px 0 6px;
+  font-size:15px;
+  line-height:1.55;
+}
+
+.howToSteps{
+  display:grid;
+  gap:12px;
+  margin-bottom:14px;
+}
+
+.howToStep{
+  display:grid;
+  grid-template-columns: 36px 1fr;
+  gap:12px;
+  align-items:start;
+  padding:12px 14px;
+  border:1px solid rgba(34,48,74,.72);
+  border-radius:14px;
+  background:linear-gradient(180deg, rgba(15,22,36,.72), rgba(15,22,36,.34));
+}
+
+.howToStepNum{
+  width:36px;
+  height:36px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:999px;
+  background:linear-gradient(180deg, rgba(124,92,255,.34), rgba(45,226,230,.20));
+  border:1px solid rgba(45,226,230,.28);
+  color:#f4f7ff;
+  font-weight:800;
+  font-size:14px;
+}
+
+.howToStep h3{
+  color:var(--text);
+  margin:0 0 4px;
   font-size:15px;
 }
 
-.howToContent p{
-  margin:0 0 10px;
+.howToStep p{
+  margin:0;
+}
+
+.howToTips{
+  display:grid;
+  gap:10px;
+}
+
+.howToTip{
+  padding:11px 14px;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,.06);
+  background:rgba(255,255,255,.03);
+  color:var(--muted);
+}
+
+.howToContent strong{
+  color:var(--text);
 }
 
 @media (max-width: 900px){
