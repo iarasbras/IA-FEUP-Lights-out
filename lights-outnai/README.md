@@ -2,6 +2,36 @@
 
 A modular web implementation of the **Lights Out** puzzle game developed for the **Artificial Intelligence** course at **FEUP**.
 
+
+## Team
+
+- **Ali Perez** - up202512122
+- **Iara Brás** - up202208825
+
+
+## Install & Setup
+
+Clone the repository:
+```bash
+git clone https://github.com/iarasbras/IA-FEUP-Lights-out.git
+cd lights-outnai
+```
+
+Run with Live Server:
+```bash
+# Option 1: Using VS Code Live Server extension
+# Right-click on homepage.html and select "Open with Live Server"
+
+# Option 2: Using Python 
+python -m http.server 8000
+# Then open http://localhost:8000/homepage.html
+
+```
+
+Open in your browser and start playing!
+
+
+
 ## Project Overview
 
 Lights Out is a one-player puzzle game played on a square grid of lights.  
@@ -9,92 +39,103 @@ When the player clicks a cell, that cell and its orthogonal neighbors (up, down,
 
 The objective is to turn **all lights off**.
 
-This version of the project now includes a **complete playable implementation** with:
-- progressive difficulty
-- modular code structure
-- dark mode interface
-- solvable generated puzzles
-- integrated AI solving support (BFS)
+This version includes:
+- Progressive difficulty levels
+- Modular JavaScript architecture
+- Dark mode interface
+- Solvable puzzle generation
+- Support for 7 different AI solving algorithms (A*, BFS, DFS, Greedy, IDS, Uniform Cost, Weighted A*)
+- Human hint system
+- Step-by-step AI solution replay
 
-The current focus is to support both **human play** and **AI-based solving analysis**.
 
----
 
 ## Game Rules
 
-- The board is a square grid.
-- Each light can be either **ON** or **OFF**.
-- Clicking one cell toggles:
+- The board is a square grid (3×3, 4×4, or 5×5)
+- Each light is either **ON** or **OFF**
+- Clicking a cell toggles:
   - the clicked cell
   - the cell above
   - the cell below
   - the cell to the left
   - the cell to the right
-- The player wins when **all lights are OFF**.
+- **Win condition**: Turn all lights OFF
 
----
 
 ## Current Features
 
-- Start menu with selectable board sizes (3x3, 4x4, 5x5)
-- Human playable Lights Out mode in the browser
-- Human hint mode via `Ask Hint` button (suggests next move)
-- Progressive levels with increasing difficulty
+### Gameplay
+- Start menu with selectable board sizes (3×3, 4×4, 5×5)
+- Playable Lights Out mode with human controls
+- Hint system via "Ask Hint" button (suggests next optimal move using A*)
 - Solvable puzzle generation
-- Difficulty smoothing with level constraints
-- Restart current level
-- Generate a new puzzle for the current level
-- AI Solver section with BFS integration
-- BFS solution replay on the board with metricts 
-- Step-by-step review of AI solution (`Previous AI Move` / `Next AI Move`)
-- Modular JavaScript architecture
+- Restart and New Puzzle buttons
+- Progressive difficulty levels with auto-advancement
+- Dark mode interface
 
----
+### AI Solvers (7 algorithms)
 
-## Difficulty Progression
+- **A\***: Optimal heuristic search using popcount admissible heuristic; balances speed with guaranteed optimal solutions
+- **BFS**: Bidirectional breadth-first search; explores equally in both directions for optimal solutions with minimal overhead
+- **DFS**: Depth-first search using stack-based exploration; explores deeply but trades solution quality for memory efficiency (can be slow)
+- **Greedy**: Fast heuristic-only search (f=h); prioritizes speed over optimality by ignoring path cost
+- **IDS**: Iterative deepening search; memory-efficient approach that repeats depth-limited searches with increasing limits to guarantee optimality
+- **Uniform Cost (UCS)**: Unbiased cost-based exploration; finds optimal solutions without heuristic guidance (slower but thorough)
+- **Weighted A\***: Weighted heuristic variant (f=g+2h); sacrifices some optimality for faster exploration compared to A*
 
-The game starts with easier constrained levels and increases in difficulty automatically as the player clears levels.
+### Solution Analysis & Metrics
 
-Progression is configured in `lights-outnai/js/config/levels.js` using:
-- board size (`n`)
-- scramble intensity (`scramble`)
-- optional ON-light cap (`maxOn`)
+After running an AI solver, detailed metrics are displayed:
 
-After the predefined levels are completed, the game continues in a harder endless mode.
+- **Time (ms)**: Wall-clock computation time in milliseconds; measure of algorithm speed
+- **Memory**: Estimated memory usage in bytes (B/KB/MB); indicates frontier/queue overhead during search
+- **Visited States**: Total number of states examined; shows search breadth
+- **Expanded States**: Number of states expanded from the frontier; indicates actual computation cost
+- **Max Queue**: Peak frontier size during execution; shows memory pressure and search tree branching
+- **AI Moves**: Number of moves in the computed solution; lower is better (optimality)
 
----
+### Visualization & Interaction
+
+- Solution replay with step-by-step controls (Previous/Next AI Move)
+- Board state updates during replay
+- Real-time metrics display with algorithm comparison
+- Performance tracking across multiple solvers
+
+
 
 ## Project Structure
 
 ```text
 lights-outnai/
 ├─ README.md
-├─ homepage.html
-├─ index.html
+├─ homepage.html              # Game menu
+├─ index.html                 # Main game board
 ├─ assets/
 │  └─ styles/
-│     └─ main.css
+│     └─ main.css             # Styling
 └─ js/
-   ├─ app.js
-   ├─ homepage.js
+   ├─ app.js                  # Main game logic
+   ├─ homepage.js             # Menu logic
    ├─ ai/
-   │  ├─ tracker.js
+   │  ├─ tracker.js           # AI metrics tracking
    │  └─ solvers/
-   │     └─ bfs.js
+   │     ├─ astar.js          # A* solver
+   │     ├─ bfs.js            # BFS solver
+   │     ├─ dfs.js            # DFS solver
+   │     ├─ greedy.js         # Greedy solver
+   │     ├─ ids.js            # IDS solver
+   │     ├─ ucs.js            # Uniform Cost solver
+   │     └─ weighted-astar.js # Weighted A* solver
    ├─ config/
-   │  └─ levels.js
+   │  └─ levels.js            # Difficulty progression
    ├─ core/
-   │  ├─ board.js
-   │  └─ game.js
+   │  ├─ board.js             # Board logic and state
+   │  └─ game.js              # Game mechanics
    └─ ui/
-      ├─ controls.js
-      ├─ dom.js
-      └─ renderer.js
+      ├─ controls.js          # User input handling
+      ├─ dom.js               # DOM element bindings
+      └─ renderer.js          # UI rendering
 ```
 
----
 
-## Team
-
-- Ali Perez, up202512122
-- Iara Brás, up202208825
