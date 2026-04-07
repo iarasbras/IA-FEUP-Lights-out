@@ -8,9 +8,14 @@ import {
   setBFSSolvedState,
   renderAIResult,
   renderAIReviewState,
+  setNextLevelVisible,
 } from "./ui/renderer.js";
 import { bindControls } from "./ui/controls.js";
 import { solveWithBFS } from "./ai/solvers/bfs.js";
+import { solveDFS } from "./ai/solvers/dfs.js";
+import { solveIDS } from "./ai/solvers/ids.js";
+import { solveWithUCS } from "./ai/solvers/ucs.js";
+import { solveGreedy } from "./ai/solvers/greedy.js";
 import { AISolverTracker } from "./ai/tracker.js";
 
 const game = new LightsOutGame();
@@ -19,6 +24,7 @@ let aiBusy = false;
 let hintCell = null;
 let hintsUsedInLevel = 0;
 const AI_REPLAY_DELAY_MS = 320;
+
 const aiReview = {
   active: false,
   moves: [],
@@ -54,6 +60,7 @@ function handlePress(i) {
       game.advanceLevel();
       hintsUsedInLevel = 0;
       hintCell = null;
+      setNextLevelVisible(false);
 
       if (game.level < game.levels.length) {
         setToast(`Beat a level to increase difficulty automatically.`);
@@ -77,12 +84,79 @@ function startGame(size) {
   clearSolvedStatus();
   setAIResultsVisible(false);
   setBFSSolvedState(false);
+  setNextLevelVisible(false);
+  syncSolveButtonLabel();
 
   setToast(`Board selected: ${size}x${size}. Turn everything OFF.`);
   update();
 }
 
-async function runBFS() {
+function getSelectedAlgorithm() {
+  const select = document.getElementById("algorithmSelect");
+  return select ? select.value : "bfs";
+}
+
+function syncSolveButtonLabel() {
+  const algorithm = getSelectedAlgorithm();
+  const labels = {
+    bfs: "Solve with BFS",
+    dfs: "Solve with DFS",
+    ids: "Solve with IDS",
+    ucs: "Solve with UCS",
+    greedy: "Solve with Greedy",
+  };
+
+  const button = document.getElementById("solveBfsBtn");
+  if (button) {
+    button.textContent = labels[algorithm] || "Solve Selected";
+  }
+}
+
+function runSelectedAlgorithm() {
+  const algorithm = getSelectedAlgorithm();
+
+  switch (algorithm) {
+    case "bfs":
+      return solveWithBFS({
+        board: game.board,
+        toggleMasks: game.toggleMasks,
+        maskAll: game.maskAll,
+      });
+
+    case "dfs":
+      return solveDFS({
+        board: game.board,
+        toggleMasks: game.toggleMasks,
+        maskAll: game.maskAll,
+      });
+
+    case "ids":
+      return solveIDS({
+        board: game.board,
+        toggleMasks: game.toggleMasks,
+        maskAll: game.maskAll,
+      });
+
+    case "ucs":
+      return solveWithUCS({
+        board: game.board,
+        toggleMasks: game.toggleMasks,
+        maskAll: game.maskAll,
+      });
+
+    case "greedy":
+      return solveGreedy({
+        board: game.board,
+        toggleMasks: game.toggleMasks,
+        maskAll: game.maskAll,
+      });
+
+    default:
+      throw new Error(`Unknown algorithm: ${algorithm}`);
+  }
+}
+
+async function runSelectedSolver() {
   if (aiBusy) {
     return;
   }
@@ -91,37 +165,36 @@ async function runBFS() {
   resetAIReview();
   hintCell = null;
   setAIResultsVisible(true);
+  setBFSSolvedState(false);
+  setNextLevelVisible(false);
 
-  setToast("Running BFS... this can take longer on larger boards.");
-
+  const algorithm = getSelectedAlgorithm();
+  setToast(`Running ${algorithm.toUpperCase()}...`);
   await pause();
 
-  const run = solveWithBFS({
-    board: game.board,
-    toggleMasks: game.toggleMasks,
-    maskAll: game.maskAll,
-  });
+  const run = runSelectedAlgorithm();
 
   aiTracker.record(run);
   update();
 
   if (!run.solved) {
-    setToast(`BFS stopped: ${run.reason}. Try a smaller board or a fresh puzzle.`);
+    setToast(`${run.method} stopped: ${run.reason}.`);
     aiBusy = false;
     return;
   }
 
-  setToast(`BFS found a solution in ${run.depth} moves. Replaying now...`);
+  setToast(`${run.method} found a solution in ${run.depth} moves. Replaying now...`);
   await replayAIMoves(run.moves);
 
   aiReview.active = true;
   aiReview.moves = run.moves.slice();
   aiReview.cursor = run.moves.length;
   setBFSSolvedState(true);
+  setNextLevelVisible(true);
   update();
 
   clearSolvedStatus();
-  setToast(`BFS replay finished. Use Previous/Next AI Move to inspect the solution.`);
+  setToast(`${run.method} replay finished. Use Previous/Next AI Move to inspect the solution.`);
   aiBusy = false;
 }
 
@@ -216,6 +289,30 @@ function stepAINext() {
   update();
 }
 
+function goToNextLevel() {
+  if (aiBusy) {
+    return;
+  }
+
+  clearSolvedStatus();
+  game.advanceLevel();
+  aiTracker.clear();
+  resetAIReview();
+  hintCell = null;
+  hintsUsedInLevel = 0;
+  setBFSSolvedState(false);
+  setNextLevelVisible(false);
+  syncSolveButtonLabel();
+
+  if (game.level < game.levels.length) {
+    setToast(`Advanced to Level ${game.level + 1}.`);
+  } else {
+    setToast(`<span class="ok">Boss cleared.</span> Endless mode: 5×5, scramble keeps increasing.`);
+  }
+
+  update();
+}
+
 function resetAIReview() {
   aiReview.active = false;
   aiReview.moves = [];
@@ -256,6 +353,8 @@ bindControls({
     hintCell = null;
     hintsUsedInLevel = 0;
     setBFSSolvedState(false);
+    setNextLevelVisible(false);
+    syncSolveButtonLabel();
     setToast(`Restarted Level ${game.level + 1}.`);
     update();
   },
@@ -271,12 +370,19 @@ bindControls({
     hintCell = null;
     hintsUsedInLevel = 0;
     setBFSSolvedState(false);
+    setNextLevelVisible(false);
+    syncSolveButtonLabel();
     setToast(`New solvable puzzle generated for Level ${game.level + 1}.`);
     update();
   },
-  onSolveBFS: runBFS,
+  onSolveBFS: runSelectedSolver,
   onAIPrevMove: stepAIPrevious,
   onAINextMove: stepAINext,
+  onNextLevel: goToNextLevel,
+});
+
+document.getElementById("algorithmSelect")?.addEventListener("change", () => {
+  syncSolveButtonLabel();
 });
 
 startGame(getStartSize());

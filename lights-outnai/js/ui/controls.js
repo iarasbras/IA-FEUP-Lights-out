@@ -6,6 +6,7 @@ import {
   solveBfsBtn,
   aiPrevBtn,
   aiNextBtn,
+  nextLevelBtn,
 } from "./dom.js";
 
 export function bindControls({
@@ -16,15 +17,18 @@ export function bindControls({
   onSolveBFS,
   onAIPrevMove,
   onAINextMove,
+  onNextLevel,
 }) {
   if (onBackToMenu) {
     backBtn.addEventListener("click", onBackToMenu);
   }
 
   restartBtn.addEventListener("click", onRestart);
+
   if (onHint) {
     hintBtn.addEventListener("click", onHint);
   }
+
   newBtn.addEventListener("click", onNewPuzzle);
 
   if (onSolveBFS) {
@@ -37,5 +41,9 @@ export function bindControls({
 
   if (onAINextMove) {
     aiNextBtn.addEventListener("click", onAINextMove);
+  }
+
+  if (onNextLevel) {
+    nextLevelBtn?.addEventListener("click", onNextLevel);
   }
 }

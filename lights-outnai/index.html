@@ -35,7 +35,13 @@
     </div>
 
     <div class="card panel">
-      <h2>Progress</h2>
+      <div class="panelTopBar">
+        <h2>Progress</h2>
+        <button class="btn hint hintMini" id="hintBtn" title="Ask for a subtle hint">
+          Ask Hint
+        </button>
+      </div>
+
       <div class="big" id="levelTitle">Level 1</div>
       <div class="muted" id="levelDesc">
         Board: 3×3 • Scramble: 6 moves
@@ -66,16 +72,28 @@
 
       <div class="buttons">
         <button class="btn primary" id="restartBtn">Restart Level</button>
-        <button class="btn hint" id="hintBtn">Ask Hint</button>
         <button class="btn danger" id="newBtn">New Puzzle</button>
       </div>
 
       <div class="aiSection">
         <h3>AI Solver</h3>
+
         <div class="aiActionRow">
-          <button class="btn ai" id="solveBfsBtn">Solve With BFS</button>
+          <label for="algorithmSelect" class="muted">Algorithm</label>
+          <select id="algorithmSelect">
+            <option value="bfs">BFS</option>
+            <option value="dfs">DFS</option>
+            <option value="ids">Iterative Deepening</option>
+            <option value="ucs">Uniform Cost</option>
+            <option value="greedy">Greedy</option>
+          </select>
+        </div>
+
+        <div class="aiActionRow">
+          <button class="btn ai" id="solveBfsBtn">Solve Selected</button>
           <div class="muted" id="aiStatus"></div>
         </div>
+
         <div id="aiResultPanel" class="hidden">
           <div class="aiStepControls">
             <div class="muted aiStepMeta" id="aiStepMeta">Step - / -</div>
@@ -108,6 +126,10 @@
               <div class="k">Max Queue</div>
               <div class="v" id="aiQueueStat">-</div>
             </div>
+          </div>
+
+          <div class="aiNextLevelRow hidden" id="aiNextLevelRow">
+            <button class="btn primary" id="nextLevelBtn">Go to Next Level</button>
           </div>
         </div>
       </div>

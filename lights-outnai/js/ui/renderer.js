@@ -21,6 +21,7 @@ import {
   aiVisitedStat,
   aiExpandedStat,
   aiQueueStat,
+  aiNextLevelRow,
 } from "./dom.js";
 
 export function setToast(html) {
@@ -73,14 +74,25 @@ export function setAIResultsVisible(visible) {
 }
 
 export function setBFSSolvedState(solved) {
+  const select = document.getElementById("algorithmSelect");
+  const currentAlgorithm = select ? select.value.toUpperCase() : "AI";
+
   if (solved) {
-    solveBfsBtn.textContent = "Solved with BFS";
+    solveBfsBtn.textContent = `Solved with ${currentAlgorithm}`;
     solveBfsBtn.disabled = true;
     return;
   }
 
-  solveBfsBtn.textContent = "Solve With BFS";
   solveBfsBtn.disabled = false;
+}
+
+export function setNextLevelVisible(visible) {
+  if (visible) {
+    aiNextLevelRow?.classList.remove("hidden");
+    return;
+  }
+
+  aiNextLevelRow?.classList.add("hidden");
 }
 
 export function renderAIReviewState(review) {
