@@ -12,6 +12,8 @@ import {
 } from "./ui/renderer.js";
 import { bindControls } from "./ui/controls.js";
 import { solveWithBFS } from "./ai/solvers/bfs.js";
+import { solveWithAStar } from "./ai/solvers/astar.js";
+import { solveWithWeightedAStar } from "./ai/solvers/weighted-astar.js";
 import { solveDFS } from "./ai/solvers/dfs.js";
 import { solveIDS } from "./ai/solvers/ids.js";
 import { solveWithUCS } from "./ai/solvers/ucs.js";
@@ -23,6 +25,7 @@ const aiTracker = new AISolverTracker();
 let aiBusy = false;
 let hintCell = null;
 let hintsUsedInLevel = 0;
+let aiReplayStartBoard = null;
 const AI_REPLAY_DELAY_MS = 320;
 
 const aiReview = {
@@ -43,6 +46,8 @@ function handlePress(i) {
   }
 
   if (aiReview.active) {
+    setBFSSolvedState(false);
+    setNextLevelVisible(false);
     resetAIReview();
   }
 
@@ -58,9 +63,9 @@ function handlePress(i) {
     setTimeout(() => {
       clearSolvedStatus();
       game.advanceLevel();
+      resetAISectionForFreshBoard();
       hintsUsedInLevel = 0;
       hintCell = null;
-      setNextLevelVisible(false);
 
       if (game.level < game.levels.length) {
         setToast(`Beat a level to increase difficulty automatically.`);
@@ -100,10 +105,12 @@ function syncSolveButtonLabel() {
   const algorithm = getSelectedAlgorithm();
   const labels = {
     bfs: "Solve with BFS",
+    astar: "Solve with A*",
     dfs: "Solve with DFS",
     ids: "Solve with IDS",
     ucs: "Solve with UCS",
     greedy: "Solve with Greedy",
+    weighted_astar: "Solve with Weighted A*",
   };
 
   const button = document.getElementById("solveBfsBtn");
@@ -118,6 +125,20 @@ function runSelectedAlgorithm() {
   switch (algorithm) {
     case "bfs":
       return solveWithBFS({
+        board: game.board,
+        toggleMasks: game.toggleMasks,
+        maskAll: game.maskAll,
+      });
+
+    case "astar":
+      return solveWithAStar({
+        board: game.board,
+        toggleMasks: game.toggleMasks,
+        maskAll: game.maskAll,
+      });
+
+    case "weighted_astar":
+      return solveWithWeightedAStar({
         board: game.board,
         toggleMasks: game.toggleMasks,
         maskAll: game.maskAll,
@@ -161,12 +182,18 @@ async function runSelectedSolver() {
     return;
   }
 
+  if (aiReview.active) {
+    restoreBoardBeforeAIReplay();
+  }
+
   aiBusy = true;
   resetAIReview();
   hintCell = null;
   setAIResultsVisible(true);
   setBFSSolvedState(false);
   setNextLevelVisible(false);
+
+  aiReplayStartBoard = game.board;
 
   const algorithm = getSelectedAlgorithm();
   setToast(`Running ${algorithm.toUpperCase()}...`);
@@ -238,7 +265,7 @@ async function askHint() {
   setToast("Computing hint...");
   await pause();
 
-  const run = solveWithBFS({
+  const run = solveWithAStar({
     board: game.board,
     toggleMasks: game.toggleMasks,
     maskAll: game.maskAll,
@@ -296,13 +323,9 @@ function goToNextLevel() {
 
   clearSolvedStatus();
   game.advanceLevel();
-  aiTracker.clear();
-  resetAIReview();
+  resetAISectionForFreshBoard();
   hintCell = null;
   hintsUsedInLevel = 0;
-  setBFSSolvedState(false);
-  setNextLevelVisible(false);
-  syncSolveButtonLabel();
 
   if (game.level < game.levels.length) {
     setToast(`Advanced to Level ${game.level + 1}.`);
@@ -317,6 +340,29 @@ function resetAIReview() {
   aiReview.active = false;
   aiReview.moves = [];
   aiReview.cursor = 0;
+}
+
+function resetAISectionForFreshBoard() {
+  aiTracker.clear();
+  resetAIReview();
+  aiReplayStartBoard = null;
+  setAIResultsVisible(false);
+  setBFSSolvedState(false);
+  setNextLevelVisible(false);
+  syncSolveButtonLabel();
+}
+
+function restoreBoardBeforeAIReplay() {
+  setBFSSolvedState(false);
+  setNextLevelVisible(false);
+
+  if (aiReplayStartBoard === null) {
+    return;
+  }
+
+  game.board = aiReplayStartBoard;
+  clearSolvedStatus();
+  resetAIReview();
 }
 
 function goBackToMenu() {
@@ -382,7 +428,9 @@ bindControls({
 });
 
 document.getElementById("algorithmSelect")?.addEventListener("change", () => {
+  restoreBoardBeforeAIReplay();
   syncSolveButtonLabel();
+  update();
 });
 
 startGame(getStartSize());

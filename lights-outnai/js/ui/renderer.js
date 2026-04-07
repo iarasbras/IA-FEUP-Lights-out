@@ -21,6 +21,7 @@ import {
   aiVisitedStat,
   aiExpandedStat,
   aiQueueStat,
+  aiMemoryStat,
   aiNextLevelRow,
 } from "./dom.js";
 
@@ -34,13 +35,13 @@ export function render(game, onPress, hintCellIndex = null, hintsUsed = 0) {
   gridEl.style.setProperty("--n", game.n);
   statusEl.textContent = `Level ${game.level + 1}`;
   levelTitle.textContent = `Level ${game.level + 1}`;
-  levelDesc.textContent = `Board: ${game.n}×${game.n} • Scramble: ${levelConfig.scramble} moves`;
+  const hintsClass = hintsUsed > 0 ? ' class="hintsHighlight"' : '';
+  levelDesc.innerHTML = `Board: ${game.n}×${game.n} • Scramble: ${levelConfig.scramble} moves • Hints used in level: <span id="hintsStat"${hintsClass}>${hintsUsed}</span>`;
 
   movesStat.textContent = game.moves;
   onStat.textContent = game.getLightsOn();
   winsStat.textContent = game.wins;
   bestStat.textContent = game.best;
-  hintsStat.textContent = hintsUsed;
 
   gridEl.innerHTML = "";
 
@@ -75,7 +76,8 @@ export function setAIResultsVisible(visible) {
 
 export function setBFSSolvedState(solved) {
   const select = document.getElementById("algorithmSelect");
-  const currentAlgorithm = select ? select.value.toUpperCase() : "AI";
+  const currentAlgorithm =
+    select?.selectedOptions?.[0]?.textContent?.trim() || "AI";
 
   if (solved) {
     solveBfsBtn.textContent = `Solved with ${currentAlgorithm}`;
@@ -117,6 +119,7 @@ export function renderAIResult(run) {
     aiVisitedStat.textContent = "-";
     aiExpandedStat.textContent = "-";
     aiQueueStat.textContent = "-";
+    aiMemoryStat.textContent = "-";
     return;
   }
 
@@ -132,4 +135,23 @@ export function renderAIResult(run) {
   aiVisitedStat.textContent = String(run.visitedStates);
   aiExpandedStat.textContent = String(run.expandedStates);
   aiQueueStat.textContent = String(run.maxQueueSize);
+  aiMemoryStat.textContent = formatMemory(run.memoryEstimateBytes);
+}
+
+function formatMemory(bytes) {
+  if (!Number.isFinite(bytes) || bytes < 0) {
+    return "-";
+  }
+
+  if (bytes < 1024) {
+    return `${bytes} B`;
+  }
+
+  const kb = bytes / 1024;
+  if (kb < 1024) {
+    return `${kb.toFixed(1)} KB`;
+  }
+
+  const mb = kb / 1024;
+  return `${mb.toFixed(2)} MB`;
 }

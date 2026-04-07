@@ -24,5 +24,6 @@ export const aiTimeStat = document.getElementById("aiTimeStat");
 export const aiVisitedStat = document.getElementById("aiVisitedStat");
 export const aiExpandedStat = document.getElementById("aiExpandedStat");
 export const aiQueueStat = document.getElementById("aiQueueStat");
+export const aiMemoryStat = document.getElementById("aiMemoryStat");
 export const nextLevelBtn = document.getElementById("nextLevelBtn");
 export const aiNextLevelRow = document.getElementById("aiNextLevelRow");
