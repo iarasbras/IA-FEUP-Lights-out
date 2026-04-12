@@ -15,6 +15,7 @@ export class LightsOutGame {
     this.level = 0;
     this.wins = 0;
     this.best = 0;
+    this.score = 0;
 
     this.n = 3;
     this.maskAll = computeMaskAll(this.n);
@@ -23,6 +24,8 @@ export class LightsOutGame {
     this.board = 0;
     this.moves = 0;
     this.lastPuzzleBoard = 0;
+    this.moveLimit = 0;
+    this.customBoardLabel = null;
   }
 
   startFromSize(size) {
@@ -31,6 +34,8 @@ export class LightsOutGame {
 
     this.wins = 0;
     this.best = 0;
+    this.score = 0;
+    this.customBoardLabel = null;
 
     this.loadLevel(0);
   }
@@ -42,11 +47,25 @@ export class LightsOutGame {
     this.n = config.n;
     this.maskAll = computeMaskAll(this.n);
     this.toggleMasks = computeToggleMasks(this.n);
+    this.customBoardLabel = null;
 
     this.board = this.makePuzzleForConfig(config);
-
     this.moves = 0;
     this.lastPuzzleBoard = this.board;
+    this.moveLimit = this.computeMoveLimit(config);
+  }
+
+  loadCustomBoard(board, n, label = "Imported Board") {
+    this.n = n;
+    this.maskAll = computeMaskAll(this.n);
+    this.toggleMasks = computeToggleMasks(this.n);
+
+    this.board = board & this.maskAll;
+    this.moves = 0;
+    this.lastPuzzleBoard = this.board;
+    this.customBoardLabel = label;
+    this.level = 0;
+    this.moveLimit = Math.max(this.n * this.n * 3, popcount(this.board) + this.n * this.n);
   }
 
   press(i, countMove = true) {
@@ -65,18 +84,38 @@ export class LightsOutGame {
   newPuzzle() {
     const config = this.getLevelConfig();
     this.board = this.makePuzzleForConfig(config);
-
     this.moves = 0;
     this.lastPuzzleBoard = this.board;
+    this.moveLimit = this.computeMoveLimit(config);
   }
 
   isSolved() {
     return this.board === 0;
   }
 
-  advanceLevel() {
+  registerWin({ hintsUsed = 0, awardScore = true } = {}) {
     this.wins += 1;
     this.best = Math.max(this.best, this.wins);
+
+    if (!awardScore) return;
+
+    const config = this.getLevelConfig();
+    const base = 100 + (config.scramble ?? popcount(this.lastPuzzleBoard)) * 20 + this.n * 25;
+    const efficiencyBonus = Math.max(0, this.getMoveLimit() - this.moves) * 2;
+    const penalties = (this.moves * 5) + (hintsUsed * 25);
+    const gained = Math.max(10, base + efficiencyBonus - penalties);
+
+    this.score += gained;
+  }
+
+  advanceLevel() {
+    if (this.customBoardLabel) {
+      const scramble = Math.max(4, popcount(this.lastPuzzleBoard) + 2);
+      this.customBoardLabel = null;
+      this.levels = [{ n: this.n, scramble, maxOn: Math.min(this.n * this.n, scramble + 4) }];
+      this.loadLevel(0);
+      return;
+    }
 
     if (this.level < this.levels.length - 1) {
       this.loadLevel(this.level + 1);
@@ -98,6 +137,7 @@ export class LightsOutGame {
 
     this.moves = 0;
     this.lastPuzzleBoard = this.board;
+    this.moveLimit = Math.max(this.n * this.n * 2, 24 + extra + 12);
   }
 
   getLightsOn() {
@@ -105,10 +145,35 @@ export class LightsOutGame {
   }
 
   getLevelConfig() {
+    if (this.customBoardLabel) {
+      return {
+        n: this.n,
+        scramble: Math.max(1, popcount(this.lastPuzzleBoard)),
+        label: this.customBoardLabel,
+        moveLimit: this.moveLimit,
+      };
+    }
+
     if (this.level < this.levels.length) {
       return this.levels[this.level];
     }
-    return { n: this.n, scramble: 24 };
+
+    return { n: this.n, scramble: 24, moveLimit: this.moveLimit };
+  }
+
+  getMoveLimit() {
+    return this.moveLimit;
+  }
+
+  computeMoveLimit(config) {
+    if (config.moveLimit) {
+      return config.moveLimit;
+    }
+
+    return Math.max(
+      Math.ceil(this.n * this.n * 1.75),
+      (config.scramble ?? 4) * 2 + this.n + 2
+    );
   }
 
   makePuzzleForConfig(config) {
@@ -129,13 +194,8 @@ export class LightsOutGame {
 
       fallback = candidate;
 
-      if (lightsOn < minOn) {
-        continue;
-      }
-
-      if (maxOn !== null && lightsOn > maxOn) {
-        continue;
-      }
+      if (lightsOn < minOn) continue;
+      if (maxOn !== null && lightsOn > maxOn) continue;
 
       return candidate;
     }

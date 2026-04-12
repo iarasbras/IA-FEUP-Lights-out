@@ -4,6 +4,9 @@ import {
   hintBtn,
   newBtn,
   solveBfsBtn,
+  compareAllBtn,
+  exportResultsBtn,
+  loadBoardBtn,
   aiPrevBtn,
   aiNextBtn,
   nextLevelBtn,
@@ -15,6 +18,9 @@ export function bindControls({
   onHint,
   onNewPuzzle,
   onSolveBFS,
+  onCompareAll,
+  onExportResults,
+  onLoadBoard,
   onAIPrevMove,
   onAINextMove,
   onNextLevel,
@@ -33,6 +39,18 @@ export function bindControls({
 
   if (onSolveBFS) {
     solveBfsBtn.addEventListener("click", onSolveBFS);
+  }
+
+  if (onCompareAll) {
+    compareAllBtn?.addEventListener("click", onCompareAll);
+  }
+
+  if (onExportResults) {
+    exportResultsBtn?.addEventListener("click", onExportResults);
+  }
+
+  if (onLoadBoard) {
+    loadBoardBtn?.addEventListener("click", onLoadBoard);
   }
 
   if (onAIPrevMove) {

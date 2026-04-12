@@ -7,7 +7,7 @@ import {
   onStat,
   winsStat,
   bestStat,
-  hintsStat,
+  scoreStat,
   toast,
   aiResultPanel,
   solveBfsBtn,
@@ -23,6 +23,8 @@ import {
   aiQueueStat,
   aiMemoryStat,
   aiNextLevelRow,
+  comparisonPanel,
+  comparisonBody,
 } from "./dom.js";
 
 export function setToast(html) {
@@ -31,17 +33,19 @@ export function setToast(html) {
 
 export function render(game, onPress, hintCellIndex = null, hintsUsed = 0) {
   const levelConfig = game.getLevelConfig();
+  const labelPrefix = levelConfig.label ? `${levelConfig.label} • ` : "";
 
   gridEl.style.setProperty("--n", game.n);
   statusEl.textContent = `Level ${game.level + 1}`;
-  levelTitle.textContent = `Level ${game.level + 1}`;
+  levelTitle.textContent = levelConfig.label || `Level ${game.level + 1}`;
   const hintsClass = hintsUsed > 0 ? ' class="hintsHighlight"' : '';
-  levelDesc.innerHTML = `Board: ${game.n}×${game.n} • Scramble: ${levelConfig.scramble} moves • Hints used in level: <span id="hintsStat"${hintsClass}>${hintsUsed}</span>`;
+  levelDesc.innerHTML = `${labelPrefix}Board: ${game.n}×${game.n} • Scramble: ${levelConfig.scramble} moves • Move limit: ${game.getMoveLimit()} • Hints used in level: <span id="hintsStat"${hintsClass}>${hintsUsed}</span>`;
 
   movesStat.textContent = game.moves;
   onStat.textContent = game.getLightsOn();
   winsStat.textContent = game.wins;
   bestStat.textContent = game.best;
+  scoreStat.textContent = game.score;
 
   gridEl.innerHTML = "";
 
@@ -58,11 +62,18 @@ export function render(game, onPress, hintCellIndex = null, hintsUsed = 0) {
 }
 
 export function setSolvedStatus() {
+  statusEl.classList.remove("bad");
   statusEl.classList.add("good");
+}
+
+export function setFailedStatus() {
+  statusEl.classList.remove("good");
+  statusEl.classList.add("bad");
 }
 
 export function clearSolvedStatus() {
   statusEl.classList.remove("good");
+  statusEl.classList.remove("bad");
 }
 
 export function setAIResultsVisible(visible) {
@@ -95,6 +106,15 @@ export function setNextLevelVisible(visible) {
   }
 
   aiNextLevelRow?.classList.add("hidden");
+}
+
+export function setComparisonVisible(visible) {
+  if (visible) {
+    comparisonPanel?.classList.remove("hidden");
+    return;
+  }
+
+  comparisonPanel?.classList.add("hidden");
 }
 
 export function renderAIReviewState(review) {
@@ -138,7 +158,32 @@ export function renderAIResult(run) {
   aiMemoryStat.textContent = formatMemory(run.memoryEstimateBytes);
 }
 
-function formatMemory(bytes) {
+export function renderComparisonResults(results) {
+  if (!comparisonBody) {
+    return;
+  }
+
+  comparisonBody.innerHTML = "";
+
+  for (const run of results) {
+    const row = document.createElement("tr");
+
+    row.innerHTML = `
+      <td>${run.method}</td>
+      <td>${run.solved ? "Yes" : "No"}</td>
+      <td>${run.depth}</td>
+      <td>${run.timeMs}</td>
+      <td>${run.visitedStates}</td>
+      <td>${run.expandedStates}</td>
+      <td>${run.maxQueueSize}</td>
+      <td>${formatMemory(run.memoryEstimateBytes)}</td>
+    `;
+
+    comparisonBody.appendChild(row);
+  }
+}
+
+export function formatMemory(bytes) {
   if (!Number.isFinite(bytes) || bytes < 0) {
     return "-";
   }

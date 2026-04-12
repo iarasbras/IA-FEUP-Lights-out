@@ -44,7 +44,7 @@
 
       <div class="big" id="levelTitle">Level 1</div>
       <div class="muted" id="levelDesc">
-        Board: 3×3 • Scramble: 6 moves • Hints used in level: <span id="hintsStat">0</span>
+        Board: 3×3 • Scramble: 6 moves • Move limit: 10 • Hints used in level: <span id="hintsStat">0</span>
       </div>
 
       <div class="stats">
@@ -64,6 +64,10 @@
           <div class="k">Wins</div>
           <div class="v" id="winsStat">0</div>
         </div>
+        <div class="stat">
+          <div class="k">Score</div>
+          <div class="v" id="scoreStat">0</div>
+        </div>
       </div>
 
       <div class="buttons">
@@ -77,18 +81,29 @@
         <div class="aiActionRow">
           <label for="algorithmSelect" class="muted">Algorithm</label>
           <select id="algorithmSelect">
-            <option value="astar">A*</option>
             <option value="bfs">BFS</option>
             <option value="dfs">DFS</option>
-            <option value="greedy">Greedy</option>
-            <option value="ids">IDS</option>
+            <option value="ids">Iterative Deepening</option>
             <option value="ucs">Uniform Cost</option>
-            <option value="weighted_astar">Weighted A*</option>
+            <option value="greedy">Greedy</option>
+            <option value="astar">A*</option>
+            <option value="weighted-astar">Weighted A*</option>
+          </select>
+        </div>
+
+        <div class="aiActionRow">
+          <label for="heuristicSelect" class="muted">Heuristic</label>
+          <select id="heuristicSelect">
+            <option value="lights-on">Lights ON</option>
+            <option value="active-lines">Active Rows + Cols</option>
+            <option value="center-weighted">Center Weighted</option>
           </select>
         </div>
 
         <div class="aiActionRow">
           <button class="btn ai" id="solveBfsBtn">Solve Selected</button>
+          <button class="btn" id="compareAllBtn">Compare All</button>
+          <button class="btn" id="exportResultsBtn">Export Results</button>
           <div class="muted" id="aiStatus"></div>
         </div>
 
@@ -113,10 +128,6 @@
               <div class="v" id="aiTimeStat">-</div>
             </div>
             <div class="stat">
-              <div class="k">Memory</div>
-              <div class="v" id="aiMemoryStat">-</div>
-            </div>
-            <div class="stat">
               <div class="k">Visited</div>
               <div class="v" id="aiVisitedStat">-</div>
             </div>
@@ -128,11 +139,57 @@
               <div class="k">Max Queue</div>
               <div class="v" id="aiQueueStat">-</div>
             </div>
+            <div class="stat">
+              <div class="k">Memory</div>
+              <div class="v" id="aiMemoryStat">-</div>
+            </div>
           </div>
 
           <div class="aiNextLevelRow hidden" id="aiNextLevelRow">
             <button class="btn primary" id="nextLevelBtn">Go to Next Level</button>
           </div>
+        </div>
+
+        <div id="comparisonPanel" class="comparisonPanel hidden">
+          <div class="comparisonHeader">
+            <h4>Algorithm Comparison</h4>
+            <div class="muted">Current board only</div>
+          </div>
+
+          <div class="comparisonTableWrap">
+            <table class="comparisonTable">
+              <thead>
+                <tr>
+                  <th>Method</th>
+                  <th>Solved</th>
+                  <th>Depth</th>
+                  <th>Time (ms)</th>
+                  <th>Visited</th>
+                  <th>Expanded</th>
+                  <th>Max Queue</th>
+                  <th>Memory</th>
+                </tr>
+              </thead>
+              <tbody id="comparisonBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="ioSection">
+        <h3>Board I/O</h3>
+        <p class="muted ioHelp">
+          Load a square 3x3 to 5x5 board using 0/1 or ./# notation. Example:
+        </p>
+        <pre class="ioExample">1 0 1
+0 1 0
+1 1 0</pre>
+
+        <textarea id="boardTextInput" class="boardTextInput" placeholder="Paste board text here..."></textarea>
+
+        <div class="ioActions">
+          <input type="file" id="boardFileInput" accept=".txt,text/plain" />
+          <button class="btn" id="loadBoardBtn">Load Board</button>
         </div>
       </div>
 

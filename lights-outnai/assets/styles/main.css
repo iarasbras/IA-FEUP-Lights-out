@@ -394,6 +394,7 @@ body.menuHome .menuScreen{
   --n:5;
   display:grid;
   grid-template-columns: repeat(var(--n), 1fr);
+  grid-template-rows: repeat(var(--n), 1fr);
   gap:10px;
   width:min(520px, 92vw);
   aspect-ratio: 1 / 1;
@@ -407,6 +408,10 @@ body.menuHome .menuScreen{
 }
 
 .cell{
+  width:100%;
+  height:100%;
+  min-width:0;
+  min-height:0;
   border-radius:14px;
   border:1px solid rgba(34,48,74,.9);
   background:rgba(10,14,24,.65);
@@ -722,4 +727,149 @@ body.menuHome .menuScreen{
 
 #aiResultPanel{
   margin-top:16px;
+}
+
+.comparisonPanel{
+  margin-top:16px;
+  padding-top:14px;
+  border-top:1px solid rgba(34,48,74,.7);
+}
+
+.comparisonHeader{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:10px;
+}
+
+.comparisonHeader h4{
+  margin:0;
+  font-size:13px;
+  letter-spacing:.3px;
+}
+
+.comparisonTableWrap{
+  overflow-x:auto;
+  border:1px solid rgba(34,48,74,.7);
+  border-radius:14px;
+  background:rgba(12,19,32,.36);
+}
+
+.comparisonTable{
+  width:100%;
+  border-collapse:collapse;
+  min-width:760px;
+}
+
+.comparisonTable th,
+.comparisonTable td{
+  padding:10px 12px;
+  text-align:left;
+  font-size:12px;
+  border-bottom:1px solid rgba(34,48,74,.55);
+}
+
+.comparisonTable th{
+  color:var(--muted);
+  font-weight:700;
+  background:rgba(255,255,255,.02);
+}
+
+.comparisonTable td{
+  color:var(--text);
+}
+
+.comparisonTable tbody tr:last-child td{
+  border-bottom:none;
+}
+
+.badge.bad{
+  border-color: rgba(255,120,145,.65);
+  background: rgba(255,92,126,.12);
+  color: #ffb5c3;
+  font-weight:700;
+}
+
+.ioSection{
+  margin-top:14px;
+  padding:16px;
+  border:1px solid rgba(34,48,74,.7);
+  border-radius:14px;
+  background:rgba(12,19,32,.30);
+}
+
+.ioSection h3{
+  margin:0 0 10px;
+  font-size:13px;
+  letter-spacing:.3px;
+}
+
+.ioHelp{
+  margin:0 0 8px;
+}
+
+.ioExample{
+  margin:0 0 10px;
+  padding:10px 12px;
+  border-radius:12px;
+  border:1px solid rgba(34,48,74,.7);
+  background:rgba(0,0,0,.18);
+  color:var(--text);
+  font-size:12px;
+  line-height:1.45;
+  overflow:auto;
+}
+
+.boardTextInput{
+  width:100%;
+  min-height:110px;
+  resize:vertical;
+  border-radius:14px;
+  border:1px solid rgba(34,48,74,.9);
+  background:rgba(12,19,32,.55);
+  color:var(--text);
+  padding:12px 14px;
+  font: inherit;
+  outline:none;
+  margin-top:6px;
+}
+
+.boardTextInput:focus{
+  border-color: rgba(45,226,230,.7);
+  box-shadow: 0 0 0 3px rgba(45,226,230,.12);
+}
+
+.ioActions{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  align-items:center;
+  margin-top:12px;
+}
+
+#boardFileInput{
+  color:var(--muted);
+  font-size:12px;
+}
+
+#heuristicSelect{
+  min-width: 220px;
+  border-radius: 10px;
+  border: 1px solid rgba(124,92,255,.45);
+  background: rgba(12,19,32,.75);
+  color: var(--text);
+  padding: 7px 12px;
+  font: inherit;
+  outline: none;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.02);
+}
+
+#heuristicSelect:hover{
+  border-color: rgba(124,92,255,.65);
+}
+
+#heuristicSelect:focus{
+  border-color: rgba(45,226,230,.7);
+  box-shadow: 0 0 0 3px rgba(45,226,230,.12);
 }

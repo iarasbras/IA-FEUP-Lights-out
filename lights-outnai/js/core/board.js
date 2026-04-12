@@ -59,3 +59,58 @@ export function makeSolvablePuzzle(n, scrambleMoves, toggleMasks, maskAll) {
 
   return board;
 }
+
+export function parseBoardText(text) {
+  const rows = text
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0)
+    .map((line) => line.replace(/[,\s]+/g, ""));
+
+  if (rows.length === 0) {
+    throw new Error("Board text is empty.");
+  }
+
+  const n = rows.length;
+
+  if (n < 3 || n > 5) {
+    throw new Error("Board size must be between 3x3 and 5x5.");
+  }
+
+  if (!rows.every((row) => row.length === n)) {
+    throw new Error("Board must be square. Each row must have the same length.");
+  }
+
+  let board = 0;
+
+  for (let r = 0; r < n; r++) {
+    for (let c = 0; c < n; c++) {
+      const ch = rows[r][c];
+
+      if (!["0", "1", ".", "#"].includes(ch)) {
+        throw new Error("Use only 0/1 or ./# to describe the board.");
+      }
+
+      const isOn = ch === "1" || ch === "#";
+      if (isOn) {
+        board |= (1 << idx(n, r, c));
+      }
+    }
+  }
+
+  return { board, n };
+}
+
+export function boardToText(board, n) {
+  const lines = [];
+
+  for (let r = 0; r < n; r++) {
+    const row = [];
+    for (let c = 0; c < n; c++) {
+      row.push(((board >>> idx(n, r, c)) & 1) === 1 ? "1" : "0");
+    }
+    lines.push(row.join(" "));
+  }
+
+  return lines.join("\n");
+}

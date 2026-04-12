@@ -1,5 +1,6 @@
-import { applyMask, popcount } from "../../core/board.js";
+import { applyMask } from "../../core/board.js";
 import { MinPriorityQueue } from "../priority-queue.js";
+import { evaluateHeuristic } from "../heuristics.js";
 
 const METHOD = "GREEDY";
 const GOAL_STATE = 0;
@@ -16,8 +17,10 @@ export function solveGreedy({
   board,
   toggleMasks,
   maskAll,
+  heuristicName = "lights-on",
 }) {
   const startTime = performance.now();
+  const n = Math.sqrt(toggleMasks.length);
 
   if (board === GOAL_STATE) {
     return makeResult({
@@ -34,7 +37,7 @@ export function solveGreedy({
   }
 
   const open = new MinPriorityQueue((a, b) => a.h - b.h);
-  open.push({ state: board, h: heuristic(board) });
+  open.push({ state: board, h: heuristic(board, n, heuristicName) });
   const visited = new Map([[board, { parent: null, move: null }]]);
 
   let expandedStates = 0;
@@ -61,7 +64,7 @@ export function solveGreedy({
       }
 
       visited.set(next, { parent: current.state, move: i });
-      open.push({ state: next, h: heuristic(next) });
+      open.push({ state: next, h: heuristic(next, n, heuristicName) });
 
       maxQueueSize = Math.max(maxQueueSize, open.size);
       maxFrontierSize = Math.max(maxFrontierSize, open.size);
@@ -84,8 +87,8 @@ export function solveGreedy({
   });
 }
 
-function heuristic(board) {
-  return popcount(board);
+function heuristic(board, n, heuristicName) {
+  return evaluateHeuristic(board, n, heuristicName);
 }
 
 function reconstructMoves(goalState, visited) {

@@ -1,5 +1,6 @@
-import { applyMask, popcount } from "../../core/board.js";
+import { applyMask } from "../../core/board.js";
 import { MinPriorityQueue } from "../priority-queue.js";
+import { evaluateHeuristic } from "../heuristics.js";
 
 const METHOD = "Weighted A*";
 const GOAL_STATE = 0;
@@ -19,8 +20,10 @@ export function solveWithWeightedAStar({
   toggleMasks,
   maskAll,
   maxVisited = 1000000,
+  heuristicName = "lights-on",
 }) {
   const startTime = performance.now();
+  const n = Math.sqrt(toggleMasks.length);
 
   if (board === GOAL_STATE) {
     return makeResult({
@@ -36,17 +39,14 @@ export function solveWithWeightedAStar({
     });
   }
 
-  // Keep states in a min queue by f(n)=g(n)+w*h(n)
   const open = new MinPriorityQueue((a, b) => {
     if (a.f !== b.f) {
       return a.f - b.f;
     }
     return a.g - b.g;
   });
-  open.push({ state: board, g: 0, f: weightedHeuristic(board) });
-  // Save best cost found so far for each state
+  open.push({ state: board, g: 0, f: weightedHeuristic(board, n, heuristicName) });
   const bestCost = new Map([[board, 0]]);
-  // Save parent and move so we can rebuild the path
   const parents = new Map([[board, { parent: null, move: null }]]);
 
   let expandedStates = 0;
@@ -57,10 +57,8 @@ export function solveWithWeightedAStar({
   let goalState = null;
 
   while (open.size > 0) {
-    // Expand the best state in the queue
     const current = open.pop();
 
-    // Skip old entries that are worse than the best known one
     if (!current || current.g > bestCost.get(current.state)) {
       continue;
     }
@@ -79,7 +77,6 @@ export function solveWithWeightedAStar({
       const nextG = current.g + 1;
       const known = bestCost.get(next);
 
-      // Only keep better paths to the same state
       if (known !== undefined && known <= nextG) {
         continue;
       }
@@ -89,7 +86,7 @@ export function solveWithWeightedAStar({
       open.push({
         state: next,
         g: nextG,
-        f: nextG + weightedHeuristic(next),
+        f: nextG + weightedHeuristic(next, n, heuristicName),
       });
 
       const queueSize = open.size;
@@ -131,13 +128,11 @@ export function solveWithWeightedAStar({
   });
 }
 
-function weightedHeuristic(board) {
-  // Bigger heuristic weight is faster but may give longer paths
-  return popcount(board) * HEURISTIC_WEIGHT;
+function weightedHeuristic(board, n, heuristicName) {
+  return evaluateHeuristic(board, n, heuristicName) * HEURISTIC_WEIGHT;
 }
 
 function reconstructMoves(goalState, parents) {
-  // Follow parents from goal back to start then reverse
   const moves = [];
   let cursor = goalState;
 

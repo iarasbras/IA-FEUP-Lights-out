@@ -1,14 +1,21 @@
 import { LightsOutGame } from "./core/game.js";
 import {
+  boardToText,
+  parseBoardText,
+} from "./core/board.js";
+import {
   render,
   setToast,
   setSolvedStatus,
+  setFailedStatus,
   clearSolvedStatus,
   setAIResultsVisible,
   setBFSSolvedState,
   renderAIResult,
   renderAIReviewState,
   setNextLevelVisible,
+  setComparisonVisible,
+  renderComparisonResults,
 } from "./ui/renderer.js";
 import { bindControls } from "./ui/controls.js";
 import { solveWithBFS } from "./ai/solvers/bfs.js";
@@ -18,14 +25,22 @@ import { solveDFS } from "./ai/solvers/dfs.js";
 import { solveIDS } from "./ai/solvers/ids.js";
 import { solveWithUCS } from "./ai/solvers/ucs.js";
 import { solveGreedy } from "./ai/solvers/greedy.js";
+import { getHeuristicLabel } from "./ai/heuristics.js";
 import { AISolverTracker } from "./ai/tracker.js";
+import {
+  heuristicSelect,
+  boardTextInput,
+  boardFileInput,
+} from "./ui/dom.js";
 
 const game = new LightsOutGame();
 const aiTracker = new AISolverTracker();
 let aiBusy = false;
+let humanDefeated = false;
 let hintCell = null;
 let hintsUsedInLevel = 0;
 let aiReplayStartBoard = null;
+let lastComparisonResults = [];
 const AI_REPLAY_DELAY_MS = 320;
 
 const aiReview = {
@@ -40,8 +55,17 @@ function update() {
   renderAIReviewState(aiReview);
 }
 
+function getSelectedAlgorithm() {
+  const select = document.getElementById("algorithmSelect");
+  return select ? select.value : "bfs";
+}
+
+function getSelectedHeuristic() {
+  return heuristicSelect?.value || "lights-on";
+}
+
 function handlePress(i) {
-  if (aiBusy) {
+  if (aiBusy || humanDefeated) {
     return;
   }
 
@@ -57,13 +81,19 @@ function handlePress(i) {
   update();
 
   if (game.isSolved()) {
+    game.registerWin({
+      hintsUsed: hintsUsedInLevel,
+      awardScore: true,
+    });
+
     setSolvedStatus();
-    setToast(`<span class="ok">Solved!</span> Moving to the next level…`);
+    setToast(`<span class="ok">Solved!</span> Score awarded. Moving to the next level…`);
 
     setTimeout(() => {
       clearSolvedStatus();
       game.advanceLevel();
       resetAISectionForFreshBoard();
+      humanDefeated = false;
       hintsUsedInLevel = 0;
       hintCell = null;
 
@@ -75,9 +105,18 @@ function handlePress(i) {
 
       update();
     }, 700);
-  } else {
-    setToast(`Keep going. Turn everything OFF.`);
+    return;
   }
+
+  if (game.moves >= game.getMoveLimit()) {
+    humanDefeated = true;
+    setFailedStatus();
+    setToast(`Move limit reached. This run is lost — restart, load another puzzle, or ask the AI to solve it.`);
+    update();
+    return;
+  }
+
+  setToast(`Keep going. Turn everything OFF.`);
 }
 
 function startGame(size) {
@@ -86,19 +125,18 @@ function startGame(size) {
   resetAIReview();
   hintCell = null;
   hintsUsedInLevel = 0;
+  humanDefeated = false;
   clearSolvedStatus();
   setAIResultsVisible(false);
   setBFSSolvedState(false);
   setNextLevelVisible(false);
+  setComparisonVisible(false);
+  renderComparisonResults([]);
+  lastComparisonResults = [];
   syncSolveButtonLabel();
 
   setToast(`Board selected: ${size}x${size}. Turn everything OFF.`);
   update();
-}
-
-function getSelectedAlgorithm() {
-  const select = document.getElementById("algorithmSelect");
-  return select ? select.value : "bfs";
 }
 
 function syncSolveButtonLabel() {
@@ -110,76 +148,12 @@ function syncSolveButtonLabel() {
     ids: "Solve with IDS",
     ucs: "Solve with UCS",
     greedy: "Solve with Greedy",
-    weighted_astar: "Solve with Weighted A*",
+    "weighted-astar": "Solve with Weighted A*",
   };
 
   const button = document.getElementById("solveBfsBtn");
   if (button) {
     button.textContent = labels[algorithm] || "Solve Selected";
-  }
-}
-
-function runSelectedAlgorithm() {
-  const algorithm = getSelectedAlgorithm();
-  const limits = getSolverLimits(game.n);
-
-  switch (algorithm) {
-    case "bfs":
-      return solveWithBFS({
-        board: game.board,
-        toggleMasks: game.toggleMasks,
-        maskAll: game.maskAll,
-        maxVisited: limits.maxVisited,
-      });
-
-    case "astar":
-      return solveWithAStar({
-        board: game.board,
-        toggleMasks: game.toggleMasks,
-        maskAll: game.maskAll,
-        maxVisited: limits.maxVisited,
-      });
-
-    case "weighted_astar":
-      return solveWithWeightedAStar({
-        board: game.board,
-        toggleMasks: game.toggleMasks,
-        maskAll: game.maskAll,
-        maxVisited: limits.maxVisited,
-      });
-
-    case "dfs":
-      return solveDFS({
-        board: game.board,
-        toggleMasks: game.toggleMasks,
-        maskAll: game.maskAll,
-      });
-
-    case "ids":
-      return solveIDS({
-        board: game.board,
-        toggleMasks: game.toggleMasks,
-        maskAll: game.maskAll,
-        maxDepth: limits.maxDepth,
-      });
-
-    case "ucs":
-      return solveWithUCS({
-        board: game.board,
-        toggleMasks: game.toggleMasks,
-        maskAll: game.maskAll,
-        maxVisited: limits.maxVisited,
-      });
-
-    case "greedy":
-      return solveGreedy({
-        board: game.board,
-        toggleMasks: game.toggleMasks,
-        maskAll: game.maskAll,
-      });
-
-    default:
-      throw new Error(`Unknown algorithm: ${algorithm}`);
   }
 }
 
@@ -193,6 +167,77 @@ function getSolverLimits(n) {
   }
 
   return { maxVisited: 100000, maxDepth: 32 };
+}
+
+function runAlgorithmByName(algorithm, boardOverride = game.board) {
+  const limits = getSolverLimits(game.n);
+  const heuristicName = getSelectedHeuristic();
+
+  switch (algorithm) {
+    case "bfs":
+      return solveWithBFS({
+        board: boardOverride,
+        toggleMasks: game.toggleMasks,
+        maskAll: game.maskAll,
+        maxVisited: limits.maxVisited,
+      });
+
+    case "astar":
+      return solveWithAStar({
+        board: boardOverride,
+        toggleMasks: game.toggleMasks,
+        maskAll: game.maskAll,
+        maxVisited: limits.maxVisited,
+        heuristicName,
+      });
+
+    case "weighted-astar":
+      return solveWithWeightedAStar({
+        board: boardOverride,
+        toggleMasks: game.toggleMasks,
+        maskAll: game.maskAll,
+        maxVisited: limits.maxVisited,
+        heuristicName,
+      });
+
+    case "dfs":
+      return solveDFS({
+        board: boardOverride,
+        toggleMasks: game.toggleMasks,
+        maskAll: game.maskAll,
+      });
+
+    case "ids":
+      return solveIDS({
+        board: boardOverride,
+        toggleMasks: game.toggleMasks,
+        maskAll: game.maskAll,
+        maxDepth: limits.maxDepth,
+      });
+
+    case "ucs":
+      return solveWithUCS({
+        board: boardOverride,
+        toggleMasks: game.toggleMasks,
+        maskAll: game.maskAll,
+        maxVisited: limits.maxVisited,
+      });
+
+    case "greedy":
+      return solveGreedy({
+        board: boardOverride,
+        toggleMasks: game.toggleMasks,
+        maskAll: game.maskAll,
+        heuristicName,
+      });
+
+    default:
+      throw new Error(`Unknown algorithm: ${algorithm}`);
+  }
+}
+
+function runSelectedAlgorithm() {
+  return runAlgorithmByName(getSelectedAlgorithm(), game.board);
 }
 
 async function runSelectedSolver() {
@@ -243,6 +288,86 @@ async function runSelectedSolver() {
   aiBusy = false;
 }
 
+async function compareAllAlgorithms() {
+  if (aiBusy) {
+    return;
+  }
+
+  if (aiReview.active) {
+    restoreBoardBeforeAIReplay();
+  }
+
+  aiBusy = true;
+  setComparisonVisible(true);
+  renderComparisonResults([]);
+  setToast("Running algorithm comparison on current board...");
+  await pause();
+
+  const boardSnapshot = game.board;
+  const algorithms = [
+    "bfs",
+    "dfs",
+    "ids",
+    "ucs",
+    "greedy",
+    "astar",
+    "weighted-astar",
+  ];
+
+  const results = algorithms.map((algorithm) =>
+    runAlgorithmByName(algorithm, boardSnapshot)
+  );
+
+  lastComparisonResults = results;
+  renderComparisonResults(results);
+  setComparisonVisible(true);
+  setToast("Comparison finished. Review the table below the AI controls.");
+  aiBusy = false;
+}
+
+async function askHint() {
+  if (aiBusy) {
+    return;
+  }
+
+  if (humanDefeated) {
+    setToast("This run is already lost. Restart or load a new puzzle.");
+    return;
+  }
+
+  if (game.isSolved()) {
+    hintCell = null;
+    setToast("Board is already solved.");
+    update();
+    return;
+  }
+
+  setToast("Computing hint...");
+  await pause();
+
+  const run = solveWithAStar({
+    board: game.board,
+    toggleMasks: game.toggleMasks,
+    maskAll: game.maskAll,
+    heuristicName: getSelectedHeuristic(),
+  });
+
+  if (!run.solved || run.moves.length === 0) {
+    hintCell = null;
+    setToast(`No hint available (${run.reason}). Try another puzzle.`);
+    update();
+    return;
+  }
+
+  hintCell = run.moves[0];
+  hintsUsedInLevel += 1;
+
+  const row = Math.floor(hintCell / game.n) + 1;
+  const col = (hintCell % game.n) + 1;
+  setToast(`Hint: try row ${row}, column ${col}.`);
+  update();
+}
+
 function replayAIMoves(moves) {
   return new Promise((resolve) => {
     if (moves.length === 0) {
@@ -266,43 +391,6 @@ function replayAIMoves(moves) {
 
 function pause() {
   return new Promise((resolve) => setTimeout(resolve, 0));
-}
-
-async function askHint() {
-  if (aiBusy) {
-    return;
-  }
-
-  if (game.isSolved()) {
-    hintCell = null;
-    setToast("Board is already solved.");
-    update();
-    return;
-  }
-
-  setToast("Computing hint...");
-  await pause();
-
-  const run = solveWithAStar({
-    board: game.board,
-    toggleMasks: game.toggleMasks,
-    maskAll: game.maskAll,
-  });
-
-  if (!run.solved || run.moves.length === 0) {
-    hintCell = null;
-    setToast(`No hint available (${run.reason}). Try another puzzle.`);
-    update();
-    return;
-  }
-
-  hintCell = run.moves[0];
-  hintsUsedInLevel += 1;
-
-  const row = Math.floor(hintCell / game.n) + 1;
-  const col = (hintCell % game.n) + 1;
-  setToast(`Hint: try row ${row}, column ${col}.`);
-  update();
 }
 
 function stepAIPrevious() {
@@ -339,9 +427,11 @@ function goToNextLevel() {
     return;
   }
 
+  game.registerWin({ awardScore: false });
   clearSolvedStatus();
   game.advanceLevel();
   resetAISectionForFreshBoard();
+  humanDefeated = false;
   hintCell = null;
   hintsUsedInLevel = 0;
 
@@ -367,6 +457,9 @@ function resetAISectionForFreshBoard() {
   setAIResultsVisible(false);
   setBFSSolvedState(false);
   setNextLevelVisible(false);
+  setComparisonVisible(false);
+  renderComparisonResults([]);
+  lastComparisonResults = [];
   syncSolveButtonLabel();
 }
 
@@ -381,6 +474,110 @@ function restoreBoardBeforeAIReplay() {
   game.board = aiReplayStartBoard;
   clearSolvedStatus();
   resetAIReview();
+}
+
+function loadBoardFromInput() {
+  try {
+    const raw = boardTextInput?.value ?? "";
+    const { board, n } = parseBoardText(raw);
+    game.loadCustomBoard(board, n, "Imported Board");
+    aiTracker.clear();
+    resetAIReview();
+    hintCell = null;
+    hintsUsedInLevel = 0;
+    humanDefeated = false;
+    clearSolvedStatus();
+    setAIResultsVisible(false);
+    setBFSSolvedState(false);
+    setNextLevelVisible(false);
+    setComparisonVisible(false);
+    renderComparisonResults([]);
+    lastComparisonResults = [];
+    setToast(`Loaded a custom ${n}x${n} board from text.`);
+    update();
+  } catch (error) {
+    setToast(`Could not load board: ${error.message}`);
+  }
+}
+
+function exportResults() {
+  const latest = aiTracker.latest();
+  const heuristicLabel = getHeuristicLabel(getSelectedHeuristic());
+
+  const lines = [
+    "Lights Out Results Export",
+    `Generated: ${new Date().toISOString()}`,
+    "",
+    `Board size: ${game.n}x${game.n}`,
+    `Current level label: ${game.getLevelConfig().label || `Level ${game.level + 1}`}`,
+    `Move limit: ${game.getMoveLimit()}`,
+    `Human moves: ${game.moves}`,
+    `Hints used: ${hintsUsedInLevel}`,
+    `Wins: ${game.wins}`,
+    `Best streak: ${game.best}`,
+    `Score: ${game.score}`,
+    `Selected heuristic: ${heuristicLabel}`,
+    "",
+    "Current board:",
+    boardToText(game.board, game.n),
+    "",
+  ];
+
+  if (latest) {
+    lines.push(
+      "Latest AI run:",
+      `Method: ${latest.method}`,
+      `Solved: ${latest.solved}`,
+      `Depth: ${latest.depth}`,
+      `Time (ms): ${latest.timeMs}`,
+      `Visited: ${latest.visitedStates}`,
+      `Expanded: ${latest.expandedStates}`,
+      `Max queue: ${latest.maxQueueSize}`,
+      `Memory: ${formatMemoryForExport(latest.memoryEstimateBytes)}`,
+      `Moves: ${latest.moves.join(", ") || "(none)"}`,
+      ""
+    );
+  }
+
+  if (lastComparisonResults.length > 0) {
+    lines.push("Comparison table:");
+    for (const run of lastComparisonResults) {
+      lines.push(
+        `${run.method} | solved=${run.solved} | depth=${run.depth} | timeMs=${run.timeMs} | visited=${run.visitedStates} | expanded=${run.expandedStates} | maxQueue=${run.maxQueueSize} | memory=${formatMemoryForExport(run.memoryEstimateBytes)}`
+      );
+    }
+    lines.push("");
+  }
+
+  const blob = new Blob([lines.join("\n")], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `lights-out-results-${Date.now()}.txt`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+
+  setToast("Results exported to a text file.");
+}
+
+function formatMemoryForExport(bytes) {
+  if (!Number.isFinite(bytes) || bytes < 0) {
+    return "-";
+  }
+
+  if (bytes < 1024) {
+    return `${bytes} B`;
+  }
+
+  const kb = bytes / 1024;
+  if (kb < 1024) {
+    return `${kb.toFixed(1)} KB`;
+  }
+
+  const mb = kb / 1024;
+  return `${mb.toFixed(2)} MB`;
 }
 
 function goBackToMenu() {
@@ -416,8 +613,13 @@ bindControls({
     resetAIReview();
     hintCell = null;
     hintsUsedInLevel = 0;
+    humanDefeated = false;
+    clearSolvedStatus();
     setBFSSolvedState(false);
     setNextLevelVisible(false);
+    setComparisonVisible(false);
+    renderComparisonResults([]);
+    lastComparisonResults = [];
     syncSolveButtonLabel();
     setToast(`Restarted Level ${game.level + 1}.`);
     update();
@@ -433,13 +635,21 @@ bindControls({
     resetAIReview();
     hintCell = null;
     hintsUsedInLevel = 0;
+    humanDefeated = false;
+    clearSolvedStatus();
     setBFSSolvedState(false);
     setNextLevelVisible(false);
+    setComparisonVisible(false);
+    renderComparisonResults([]);
+    lastComparisonResults = [];
     syncSolveButtonLabel();
-    setToast(`New solvable puzzle generated for Level ${game.level + 1}.`);
+    setToast(`New solvable puzzle generated for ${game.n}x${game.n}.`);
     update();
   },
   onSolveBFS: runSelectedSolver,
+  onCompareAll: compareAllAlgorithms,
+  onExportResults: exportResults,
+  onLoadBoard: loadBoardFromInput,
   onAIPrevMove: stepAIPrevious,
   onAINextMove: stepAINext,
   onNextLevel: goToNextLevel,
@@ -449,6 +659,29 @@ document.getElementById("algorithmSelect")?.addEventListener("change", () => {
   restoreBoardBeforeAIReplay();
   syncSolveButtonLabel();
   update();
+});
+
+heuristicSelect?.addEventListener("change", () => {
+  if (aiTracker.latest()) {
+    setToast(`Heuristic changed to ${getHeuristicLabel(getSelectedHeuristic())}.`);
+  }
+});
+
+boardFileInput?.addEventListener("change", async (event) => {
+  const file = event.target.files?.[0];
+  if (!file) {
+    return;
+  }
+
+  try {
+    const text = await file.text();
+    if (boardTextInput) {
+      boardTextInput.value = text;
+    }
+    setToast(`Loaded text from ${file.name}. Review it, then click "Load Board".`);
+  } catch {
+    setToast("Could not read the selected file.");
+  }
 });
 
 startGame(getStartSize());
