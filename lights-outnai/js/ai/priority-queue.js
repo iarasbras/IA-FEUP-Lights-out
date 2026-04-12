@@ -1,3 +1,5 @@
+// Simple min-heap used by A*, Weighted A*, UCS and Greedy
+// compare(a, b) < 0 means a should come first
 export class MinPriorityQueue {
   constructor(compare) {
     this.compare = compare;
@@ -9,11 +11,13 @@ export class MinPriorityQueue {
   }
 
   push(value) {
+    // Add at the end then move up while needed
     this.heap.push(value);
     this.bubbleUp(this.heap.length - 1);
   }
 
   pop() {
+    // Remove the top item then fix heap from the root
     if (this.heap.length === 0) {
       return undefined;
     }
@@ -30,6 +34,7 @@ export class MinPriorityQueue {
   }
 
   bubbleUp(index) {
+    // Move up while this item should be before its parent
     while (index > 0) {
       const parent = Math.floor((index - 1) / 2);
       if (this.compare(this.heap[index], this.heap[parent]) >= 0) {
@@ -42,6 +47,7 @@ export class MinPriorityQueue {
   }
 
   bubbleDown(index) {
+    // Move down until heap order is correct again
     const length = this.heap.length;
 
     while (true) {

@@ -34,6 +34,7 @@ export function solveWithBFS({
     });
   }
 
+  // Bidirectional BFS uses one frontier from start and one from goal
   const startFrontier = createFrontier(board);
   const goalFrontier = createFrontier(GOAL_STATE);
 
@@ -44,6 +45,7 @@ export function solveWithBFS({
   let reason = REASON.FOUND;
 
   while (hasWork(startFrontier) && hasWork(goalFrontier)) {
+    // Expand one BFS layer from the start side
     const first = expandLayer({
       frontier: startFrontier,
       opposite: goalFrontier,
@@ -70,6 +72,7 @@ export function solveWithBFS({
       break;
     }
 
+    // Expand one BFS layer from the goal side
     const second = expandLayer({
       frontier: goalFrontier,
       opposite: startFrontier,
@@ -122,6 +125,7 @@ export function solveWithBFS({
 }
 
 function createFrontier(seedState) {
+  // Use queue + head index so we do not call shift
   return {
     queue: [seedState],
     head: 0,
@@ -139,6 +143,7 @@ function updatePeaks({
   maxQueueSize,
   maxFrontierSize,
 }) {
+  // queueSize is total stored items and frontierSize is still pending
   const queueSize = startFrontier.queue.length + goalFrontier.queue.length;
   const frontierSize =
     (startFrontier.queue.length - startFrontier.head) +
@@ -177,6 +182,7 @@ function makeResult({
 }
 
 function expandLayer({ frontier, opposite, toggleMasks, maskAll, maxVisited }) {
+  // Freeze current layer so BFS depth order stays correct
   const layerSize = frontier.queue.length - frontier.head;
   let expandedStates = 0;
   for (let k = 0; k < layerSize; k++) {
@@ -193,6 +199,7 @@ function expandLayer({ frontier, opposite, toggleMasks, maskAll, maxVisited }) {
       frontier.visited.set(next, { parent: state, move: i });
       frontier.queue.push(next);
 
+      // If the two searches meet we can build start -> meet -> goal
       if (opposite.visited.has(next)) {
         return { expanded: expandedStates, hitMax: false, meetState: next };
       }
@@ -207,6 +214,7 @@ function expandLayer({ frontier, opposite, toggleMasks, maskAll, maxVisited }) {
 }
 
 function reconstructBidirectionalMoves(meetState, visitedStart, visitedGoal) {
+  // Build the start -> meet part
   const fromStart = [];
   let cursor = meetState;
 
@@ -218,6 +226,7 @@ function reconstructBidirectionalMoves(meetState, visitedStart, visitedGoal) {
 
   fromStart.reverse();
 
+  // Build the meet -> goal part
   const toGoal = [];
   cursor = meetState;
 

@@ -35,6 +35,7 @@ export function solveWithAStar({
     });
   }
 
+  // Keep states in a min queue by f(n)=g(n)+h(n)
   const open = new MinPriorityQueue((a, b) => {
     if (a.f !== b.f) {
       return a.f - b.f;
@@ -42,7 +43,9 @@ export function solveWithAStar({
     return a.g - b.g;
   });
   open.push({ state: board, g: 0, f: heuristic(board) });
+  // Save best cost found so far for each state
   const bestCost = new Map([[board, 0]]);
+  // Save parent and move so we can rebuild the path
   const parents = new Map([[board, { parent: null, move: null }]]);
 
   let expandedStates = 0;
@@ -53,8 +56,10 @@ export function solveWithAStar({
   let goalState = null;
 
   while (open.size > 0) {
+    // Expand the best state in the queue
     const current = open.pop();
 
+    // Skip old entries that are worse than the best known one
     if (!current || current.g > bestCost.get(current.state)) {
       continue;
     }
@@ -73,6 +78,7 @@ export function solveWithAStar({
       const nextG = current.g + 1;
       const known = bestCost.get(next);
 
+      // If we already have a cheaper path to this state, skip
       if (known !== undefined && known <= nextG) {
         continue;
       }
@@ -125,10 +131,12 @@ export function solveWithAStar({
 }
 
 function heuristic(board) {
+  // h(n) is how many lights are ON
   return popcount(board);
 }
 
 function reconstructMoves(goalState, parents) {
+  // Follow parents from goal back to start then reverse
   const moves = [];
   let cursor = goalState;
 
