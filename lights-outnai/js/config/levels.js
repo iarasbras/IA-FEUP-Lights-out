@@ -1,5 +1,5 @@
 export const levels = [
-  { n: 3, scramble: 2, maxOn: 3 },
+  { n: 3, scramble: 1, maxOn: 3 },
   { n: 3, scramble: 4, maxOn: 5 },
   { n: 3, scramble: 6, maxOn: 7 },
 

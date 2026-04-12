@@ -1,4 +1,5 @@
 import { applyMask, popcount } from "../../core/board.js";
+import { MinPriorityQueue } from "../priority-queue.js";
 
 const METHOD = "A*";
 const GOAL_STATE = 0;
@@ -34,7 +35,13 @@ export function solveWithAStar({
     });
   }
 
-  const open = [{ state: board, g: 0, f: heuristic(board) }];
+  const open = new MinPriorityQueue((a, b) => {
+    if (a.f !== b.f) {
+      return a.f - b.f;
+    }
+    return a.g - b.g;
+  });
+  open.push({ state: board, g: 0, f: heuristic(board) });
   const bestCost = new Map([[board, 0]]);
   const parents = new Map([[board, { parent: null, move: null }]]);
 
@@ -45,15 +52,8 @@ export function solveWithAStar({
   let solved = false;
   let goalState = null;
 
-  while (open.length > 0) {
-    open.sort((a, b) => {
-      if (a.f !== b.f) {
-        return a.f - b.f;
-      }
-      return a.g - b.g;
-    });
-
-    const current = open.shift();
+  while (open.size > 0) {
+    const current = open.pop();
 
     if (!current || current.g > bestCost.get(current.state)) {
       continue;
@@ -85,7 +85,7 @@ export function solveWithAStar({
         f: nextG + heuristic(next),
       });
 
-      const queueSize = open.length;
+      const queueSize = open.size;
       maxQueueSize = Math.max(maxQueueSize, queueSize);
       maxFrontierSize = Math.max(maxFrontierSize, queueSize);
 

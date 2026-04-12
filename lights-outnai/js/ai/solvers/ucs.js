@@ -1,4 +1,5 @@
 import { applyMask } from "../../core/board.js";
+import { MinPriorityQueue } from "../priority-queue.js";
 
 const METHOD = "UCS";
 const GOAL_STATE = 0;
@@ -34,7 +35,8 @@ export function solveWithUCS({
     });
   }
 
-  const frontier = [{ state: board, cost: 0 }];
+  const frontier = new MinPriorityQueue((a, b) => a.cost - b.cost);
+  frontier.push({ state: board, cost: 0 });
   const bestCost = new Map([[board, 0]]);
   const parents = new Map([[board, { parent: null, move: null }]]);
 
@@ -45,10 +47,8 @@ export function solveWithUCS({
   let solved = false;
   let goalState = null;
 
-  while (frontier.length > 0) {
-    frontier.sort((a, b) => a.cost - b.cost);
-
-    const current = frontier.shift();
+  while (frontier.size > 0) {
+    const current = frontier.pop();
     expandedStates += 1;
 
     if (current.cost > bestCost.get(current.state)) {
@@ -71,7 +71,7 @@ export function solveWithUCS({
         parents.set(next, { parent: current.state, move: i });
         frontier.push({ state: next, cost: nextCost });
 
-        const queueSize = frontier.length;
+        const queueSize = frontier.size;
         maxQueueSize = Math.max(maxQueueSize, queueSize);
         maxFrontierSize = Math.max(maxFrontierSize, queueSize);
 

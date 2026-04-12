@@ -1,4 +1,5 @@
 import { applyMask, popcount } from "../../core/board.js";
+import { MinPriorityQueue } from "../priority-queue.js";
 
 const METHOD = "GREEDY";
 const GOAL_STATE = 0;
@@ -32,7 +33,8 @@ export function solveGreedy({
     });
   }
 
-  const open = [{ state: board, h: heuristic(board) }];
+  const open = new MinPriorityQueue((a, b) => a.h - b.h);
+  open.push({ state: board, h: heuristic(board) });
   const visited = new Map([[board, { parent: null, move: null }]]);
 
   let expandedStates = 0;
@@ -41,9 +43,8 @@ export function solveGreedy({
   let solved = false;
   let goalState = null;
 
-  while (open.length > 0) {
-    open.sort((a, b) => a.h - b.h);
-    const current = open.shift();
+  while (open.size > 0) {
+    const current = open.pop();
     expandedStates += 1;
 
     if (current.state === GOAL_STATE) {
@@ -62,8 +63,8 @@ export function solveGreedy({
       visited.set(next, { parent: current.state, move: i });
       open.push({ state: next, h: heuristic(next) });
 
-      maxQueueSize = Math.max(maxQueueSize, visited.size);
-      maxFrontierSize = Math.max(maxFrontierSize, open.length);
+      maxQueueSize = Math.max(maxQueueSize, open.size);
+      maxFrontierSize = Math.max(maxFrontierSize, open.size);
     }
   }
 

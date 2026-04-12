@@ -121,6 +121,7 @@ function syncSolveButtonLabel() {
 
 function runSelectedAlgorithm() {
   const algorithm = getSelectedAlgorithm();
+  const limits = getSolverLimits(game.n);
 
   switch (algorithm) {
     case "bfs":
@@ -128,6 +129,7 @@ function runSelectedAlgorithm() {
         board: game.board,
         toggleMasks: game.toggleMasks,
         maskAll: game.maskAll,
+        maxVisited: limits.maxVisited,
       });
 
     case "astar":
@@ -135,6 +137,7 @@ function runSelectedAlgorithm() {
         board: game.board,
         toggleMasks: game.toggleMasks,
         maskAll: game.maskAll,
+        maxVisited: limits.maxVisited,
       });
 
     case "weighted_astar":
@@ -142,6 +145,7 @@ function runSelectedAlgorithm() {
         board: game.board,
         toggleMasks: game.toggleMasks,
         maskAll: game.maskAll,
+        maxVisited: limits.maxVisited,
       });
 
     case "dfs":
@@ -156,6 +160,7 @@ function runSelectedAlgorithm() {
         board: game.board,
         toggleMasks: game.toggleMasks,
         maskAll: game.maskAll,
+        maxDepth: limits.maxDepth,
       });
 
     case "ucs":
@@ -163,6 +168,7 @@ function runSelectedAlgorithm() {
         board: game.board,
         toggleMasks: game.toggleMasks,
         maskAll: game.maskAll,
+        maxVisited: limits.maxVisited,
       });
 
     case "greedy":
@@ -175,6 +181,18 @@ function runSelectedAlgorithm() {
     default:
       throw new Error(`Unknown algorithm: ${algorithm}`);
   }
+}
+
+function getSolverLimits(n) {
+  if (n <= 3) {
+    return { maxVisited: 180000, maxDepth: 24 };
+  }
+
+  if (n === 4) {
+    return { maxVisited: 140000, maxDepth: 28 };
+  }
+
+  return { maxVisited: 100000, maxDepth: 32 };
 }
 
 async function runSelectedSolver() {

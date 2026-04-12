@@ -61,7 +61,7 @@ export function solveDFS({
       visited.set(next, { parent: current, move: i });
       stack.push(next);
 
-      maxQueueSize = Math.max(maxQueueSize, visited.size);
+      maxQueueSize = Math.max(maxQueueSize, stack.length);
       maxFrontierSize = Math.max(maxFrontierSize, stack.length);
     }
   }

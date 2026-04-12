@@ -128,7 +128,7 @@ function depthLimitedSearch({
       visited.set(next, { parent: current.state, move: i, depth: nextDepth });
       stack.push({ state: next, depth: nextDepth });
 
-      maxQueueSize = Math.max(maxQueueSize, visited.size);
+      maxQueueSize = Math.max(maxQueueSize, stack.length);
       maxFrontierSize = Math.max(maxFrontierSize, stack.length);
     }
   }
