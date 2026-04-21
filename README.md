@@ -5,8 +5,8 @@ A modular web implementation of the **Lights Out** puzzle game developed for the
 
 ## Team
 
-- **Ali Perez** - up202512122
-- **Iara Brás** - up202208825
+- **Ali Perez** - up202512122@up.pt
+- **Iara Brás** - up202208825@up.pt
 
 
 ## Install & Setup
